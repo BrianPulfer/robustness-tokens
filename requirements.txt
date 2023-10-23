@@ -1,1 +1,6 @@
+numpy
+Pillow
 pre-commit
+python-dotenv
+torch
+torchvision
