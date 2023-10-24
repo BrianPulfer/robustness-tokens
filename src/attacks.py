@@ -15,7 +15,9 @@ def quantize(batch):
     return batch
 
 
-def pgd_attack(model, batch, steps=350, lr=4e-4, max_mse=1e-4, eps=None, verbose=False):
+def pgd_attack(
+    model, batch, steps=350, lr=4e-4, max_mse=1e-4, eps=8 / 255, verbose=False
+):
     model.eval()
     with torch.no_grad():
         target = model(batch).detach()
@@ -37,11 +39,9 @@ def pgd_attack(model, batch, steps=350, lr=4e-4, max_mse=1e-4, eps=None, verbose
         batch_adv.data = batch_adv.data - lr * batch_adv.grad.sign()
         batch_adv.grad.zero_()
 
-        # Clamp perturbation
+        # Projection
         if eps is not None:
-            delta = batch_adv - batch
-            delta = torch.clamp(delta, -eps, eps)
-            batch_adv = batch + delta
+            batch_adv = batch + torch.clamp(batch_adv - batch, -eps, eps)
 
         # Stay within range
         batch_adv = torch.clamp(batch_adv, lower, upper).clone().detach()
