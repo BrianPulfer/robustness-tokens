@@ -25,13 +25,25 @@ def get_loaders(batch_size, num_workers=0):
         return torch.stack([s["image"] for s in samples])
 
     train_loader = DataLoader(
-        train_set, batch_size=batch_size, collate_fn=collate_fn, num_workers=num_workers
+        train_set,
+        batch_size=batch_size,
+        collate_fn=collate_fn,
+        num_workers=num_workers,
+        shuffle=True,
     )
     val_loader = DataLoader(
-        val_set, batch_size=batch_size, collate_fn=collate_fn, num_workers=num_workers
+        val_set,
+        batch_size=batch_size,
+        collate_fn=collate_fn,
+        num_workers=num_workers,
+        shuffle=False,
     )
     test_loader = DataLoader(
-        test_set, batch_size=batch_size, collate_fn=collate_fn, num_workers=num_workers
+        test_set,
+        batch_size=batch_size,
+        collate_fn=collate_fn,
+        num_workers=num_workers,
+        shuffle=False,
     )
 
     return train_loader, val_loader, test_loader
