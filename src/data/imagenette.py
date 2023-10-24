@@ -10,7 +10,9 @@ def get_loaders(batch_size, num_workers=0):
     test_set = load_dataset("frgfm/imagenette", "full_size", split="train[70%:]")
     val_set = load_dataset("frgfm/imagenette", "full_size", split="validation")
 
-    map_fn = lambda sample: {"image": transform(sample["image"].convert("RGB"))}
+    def map_fn(sample):
+        return {"image": transform(sample["image"].convert("RGB"))}
+
     train_set = train_set.map(map_fn)
     val_set = val_set.map(map_fn)
     test_set = test_set.map(map_fn)
@@ -19,7 +21,9 @@ def get_loaders(batch_size, num_workers=0):
     val_set.set_format(type="torch", columns=["image"])
     test_set.set_format(type="torch", columns=["image"])
 
-    collate_fn = lambda samples: torch.stack([s["image"] for s in samples])
+    def collate_fn(samples):
+        return torch.stack([s["image"] for s in samples])
+
     train_loader = DataLoader(
         train_set, batch_size=batch_size, collate_fn=collate_fn, num_workers=num_workers
     )

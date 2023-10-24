@@ -21,7 +21,7 @@ def pgd_attack(model, batch, steps=350, lr=4e-4, max_mse=1e-4, eps=None, verbose
         target = model(batch).detach()
         img_target = unnormalize(batch).detach()
 
-    l, u = batch.min(), batch.max()
+    lower, upper = batch.min(), batch.max()
     batch_adv = (batch + lr * torch.randn_like(batch)).detach().clone()
     batch_adv.requires_grad = True
     for step in range(steps):
@@ -44,7 +44,7 @@ def pgd_attack(model, batch, steps=350, lr=4e-4, max_mse=1e-4, eps=None, verbose
             batch_adv = batch + delta
 
         # Stay within range
-        batch_adv = torch.clamp(batch_adv, l, u).clone().detach()
+        batch_adv = torch.clamp(batch_adv, lower, upper).clone().detach()
         batch_adv.requires_grad = True
 
         # Print progress

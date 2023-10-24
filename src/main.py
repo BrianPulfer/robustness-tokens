@@ -19,7 +19,7 @@ from models import get_model
 def get_loss_and_mse(model, loader, criterion, attack_fn):
     total_loss, total_mse = 0.0, 0.0
     for batch in loader:
-        batch_adv = attack_fn(model, batch).clone().detach()
+        batch_adv = attack_fn(model, batch)
         with torch.no_grad():
             target = model(batch)
             mse = mse_loss(unnormalize(batch_adv), unnormalize(batch))
@@ -66,7 +66,7 @@ def main(args):
     )
 
     # Initializing wandb
-    wandb.init(project="Robustness Tokens", config=args)
+    wandb.init(project="Robustness Tokens", name=args["run_name"], config=args)
 
     # Attacking model on dataset
     steps, best_val_loss = 0, 0
@@ -84,7 +84,7 @@ def main(args):
 
     while steps < args["train"]["max_steps"]:
         for batch in train_loader:
-            batch_adv = attack_fn(model, batch).clone().detach()
+            batch_adv = attack_fn(model, batch)
             with torch.no_grad():
                 target = model(batch)
                 mse = mse_loss(unnormalize(batch_adv), unnormalize(batch))
@@ -108,7 +108,7 @@ def main(args):
                 wandb.log(
                     {
                         "Val Loss": val_loss / len(val_loader.dataset),
-                        "Val Image MSE": mse.item(),
+                        "Val Image MSE": mse,
                     },
                     step=steps,
                 )
@@ -120,12 +120,14 @@ def main(args):
                 break
 
     # Testing model with and without robustification
+    del batch, batch_adv, target, mse, pred, loss
+    torch.cuda.empty_cache()
     model.load_state_dict(torch.load(store_path), map_location=accelerator.device)
     test_loss, mse = get_loss_and_mse(model, test_loader, criterion, attack_fn)
     wandb.log(
         {
             "Test loss": test_loss / len(test_loader.dataset),
-            "Test Image MSE": mse.item(),
+            "Test Image MSE": mse,
         },
         step=steps,
     )
