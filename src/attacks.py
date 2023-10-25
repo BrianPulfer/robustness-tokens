@@ -16,7 +16,7 @@ def quantize(batch):
 
 
 def pgd_attack(
-    model, batch, steps=350, lr=4e-4, max_mse=1e-4, eps=8 / 255, verbose=False
+    model, batch, steps=30, lr=1e-2, max_mse=1e-4, eps=8 / 255, verbose=False
 ):
     model.eval()
     with torch.no_grad():
