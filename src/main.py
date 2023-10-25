@@ -75,7 +75,7 @@ def main(args):
     wandb.init(project="Robustness Tokens", name=args["run_name"], config=args)
 
     # Attacking model on dataset
-    steps, best_val_loss = 0, 0
+    steps, best_val_loss = 0, float("inf")
     store_path = os.path.join(args["results_dir"], "best.ckpt")
     criterion = getattr(torch.nn, args["train"]["criterion"])()
     optim = getattr(torch.optim, args["train"]["optimizer"])(
