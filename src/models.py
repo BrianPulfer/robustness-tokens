@@ -30,15 +30,22 @@ class DinoV2Robustifier(Module):
             model_name in SUPPORTED_DINOV2_MODELS
         ), f"{model_name} not supported. Pick one of {SUPPORTED_DINOV2_MODELS}"
 
+        self.model_name = model_name
         self.model = torch.hub.load("facebookresearch/dinov2", model_name).eval()
         self.enbable_robust = enbable_robust
         self.return_cls = return_cls
+        self.n_rtokens = n_rtokens
 
         hidden_dim = self.model.cls_token.shape[-1]
-        self.rtokens = torch.nn.Parameter(0.01 * torch.randn(1, n_rtokens, hidden_dim))
+        self.rtokens = torch.nn.Parameter(1e-2 * torch.randn(1, n_rtokens, hidden_dim))
+        # self.rtokens = torch.nn.Parameter(torch.zeros(1, n_rtokens, hidden_dim))
 
-    def forward(self, x, enable_robust=None, return_cls=None):
+    def forward(self, x, enable_robust=None, return_cls=None, return_rtokens=False):
         b, c, w, h = x.shape
+        running_cls = return_cls is True or (return_cls is None and self.return_cls)
+        running_robust = enable_robust is True or (
+            enable_robust is None and self.enbable_robust
+        )
 
         # Embedding patches
         x = self.model.patch_embed(x)
@@ -48,7 +55,7 @@ class DinoV2Robustifier(Module):
         x += self.model.interpolate_pos_encoding(x, w, h)
 
         # Appending robust token
-        if enable_robust is True or (enable_robust is None and self.enbable_robust):
+        if running_robust:
             x = torch.cat((x, self.rtokens.repeat(b, 1, 1)), dim=1)
 
         # Running blocks
@@ -56,7 +63,10 @@ class DinoV2Robustifier(Module):
             x = blk(x)
         x = self.model.norm(x)
 
-        if return_cls is True or (return_cls is None and self.return_cls):
+        if running_cls:
             return self.model.head(x[:, 0])
+
+        if not return_rtokens and running_robust:
+            return x[:, : -self.n_rtokens]
 
         return x
