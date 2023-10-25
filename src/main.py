@@ -19,7 +19,7 @@ from models import get_model
 
 def validation_loop(model, loader, criterion, attack_fn):
     total_loss_iden, total_loss_adv, total_mse = 0.0, 0.0, 0.0
-    for batch in loader:
+    for batch in tqdm(loader, leave=False, desc="Validation loop"):
         batch_adv = attack_fn(model, batch)
 
         with torch.no_grad():
