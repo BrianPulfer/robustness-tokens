@@ -15,7 +15,7 @@ def get_model(name, enbable_robust=True, return_cls=False, n_rtokens=1):
     if name in SUPPORTED_DINOV2_MODELS:
         return DinoV2Robustifier(
             model_name=name,
-            enbable_robust=enbable_robust,
+            enable_robust=enbable_robust,
             return_cls=return_cls,
             n_rtokens=n_rtokens,
         )
@@ -23,7 +23,7 @@ def get_model(name, enbable_robust=True, return_cls=False, n_rtokens=1):
 
 
 class DinoV2Robustifier(Module):
-    def __init__(self, model_name, enbable_robust=False, return_cls=False, n_rtokens=1):
+    def __init__(self, model_name, enable_robust=False, return_cls=False, n_rtokens=1):
         super(DinoV2Robustifier, self).__init__()
 
         assert (
@@ -32,7 +32,7 @@ class DinoV2Robustifier(Module):
 
         self.model_name = model_name
         self.model = torch.hub.load("facebookresearch/dinov2", model_name).eval()
-        self.enbable_robust = enbable_robust
+        self.enable_robust = enable_robust
         self.return_cls = return_cls
         self.n_rtokens = n_rtokens
 
@@ -44,7 +44,7 @@ class DinoV2Robustifier(Module):
         b, c, w, h = x.shape
         running_cls = return_cls if return_cls is not None else self.return_cls
         running_robust = (
-            enable_robust if enable_robust is not None else self.enbable_robust
+            enable_robust if enable_robust is not None else self.enable_robust
         )
 
         # Embedding patches
