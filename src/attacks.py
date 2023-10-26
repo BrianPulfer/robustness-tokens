@@ -1,16 +1,16 @@
 import torch
 from torch.nn.functional import cosine_similarity, mse_loss
 
-from data.transforms import normalize, unnormalize
+from data.transforms import to_tensor, to_pil, unnormalize, normalize
 
 
 def psnr_to_mse(psnr):
     return 10 ** (-psnr / 10)
 
 
-def quantize(batch):
-    imgs = [unnormalize(img).clamp(0, 1) for img in batch]
-    imgs = [normalize(img) for img in imgs]
+def validate(batch):
+    imgs = [to_pil(unnormalize(img).clamp(0, 1)) for img in batch]
+    imgs = [normalize(to_tensor(img)) for img in imgs]
     batch = torch.stack(imgs).cuda()
     return batch
 
@@ -56,6 +56,6 @@ def pgd_attack(
             if i_loss >= max_mse:
                 break
 
-    # Quantizing
-    batch_adv = quantize(batch_adv)
+    # Getting valid image tensors
+    batch_adv = validate(batch_adv)
     return batch_adv.clone().detach()
