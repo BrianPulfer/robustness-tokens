@@ -42,9 +42,9 @@ class DinoV2Robustifier(Module):
 
     def forward(self, x, enable_robust=None, return_cls=None, return_rtokens=False):
         b, c, w, h = x.shape
-        running_cls = return_cls is True or (return_cls is None and self.return_cls)
-        running_robust = enable_robust is True or (
-            enable_robust is None and self.enbable_robust
+        running_cls = return_cls if return_cls is not None else self.return_cls
+        running_robust = (
+            enable_robust if enable_robust is not None else self.enbable_robust
         )
 
         # Embedding patches
