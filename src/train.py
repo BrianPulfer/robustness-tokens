@@ -18,9 +18,13 @@ from data.transforms import unnormalize
 from models import get_model
 
 
-def validation_loop(model, loader, criterion, attack_fn):
+def validation_loop(model, loader, criterion, attack_fn, max_val_steps=None):
     loss_inv, loss_adv, total_mse = 0.0, 0.0, 0.0
-    for batch in tqdm(loader, leave=False, desc="Validation loop"):
+    n_steps = len(loader) if max_val_steps is None else min(max_val_steps, len(loader))
+    loader_iterator = iter(loader)
+
+    for step in tqdm(range(n_steps), leave=False, desc="Validation loop"):
+        batch = next(loader_iterator)
         batch = batch[0]
         batch_adv = attack_fn(model, batch)
 
@@ -34,6 +38,7 @@ def validation_loop(model, loader, criterion, attack_fn):
             loss_inv += li.item() * len(batch)
             loss_adv += la.item() * len(batch)
             total_mse += mse.item() * len(batch)
+
     return loss_inv, loss_adv, total_mse
 
 
@@ -165,7 +170,11 @@ def main(args):
                 if steps % args["train"]["val_every_n_steps"] == 0:
                     torch.cuda.empty_cache()
                     l_inv, l_adv, mse = validation_loop(
-                        model, val_loader, criterion, attack_fn
+                        model,
+                        val_loader,
+                        criterion,
+                        attack_fn,
+                        args["train"]["max_val_steps"],
                     )
                     val_loss = l_inv + l_adv
                     wandb.log(
