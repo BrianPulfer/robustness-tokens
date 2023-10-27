@@ -10,13 +10,16 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
             "justMyCode": true
         },
         {
-            "name": "Main",
+            "name": "Train",
             "type": "python",
             "request": "launch",
-            "program": "src/main.py",
+            "program": "src/train.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"
