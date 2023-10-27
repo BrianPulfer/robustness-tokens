@@ -11,6 +11,4 @@ unnormalize = tt.Normalize(
 to_tensor = tt.ToTensor()
 to_pil = tt.ToPILImage()
 
-transform = tt.Compose([tt.Resize((224, 224)), tt.ToTensor(), normalize])
-
-to_img = tt.Compose([unnormalize, to_pil])
+default_transform = tt.Compose([tt.Resize((224, 224)), tt.ToTensor(), normalize])
