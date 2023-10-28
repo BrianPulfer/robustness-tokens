@@ -6,13 +6,13 @@ attack:
 dataset: imagenet
 model:
   n_rtokens: 10
-  name: dinov2_vitl14
+  name: dinov2_vits14
   return_cls: false
-results_dir: results/large
-run_name: large
+results_dir: results/small
+run_name: small
 seed: 0
 train:
-  batch_size: 128
+  batch_size: 256
   criterion: CosineSimilarity
   grad_log_freq: 30
   lr: 0.001
