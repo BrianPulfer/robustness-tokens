@@ -1,0 +1,17 @@
+image: continuumio/miniconda3:latest
+
+stages:
+  - conda
+  - test
+
+conda:
+  stage: create
+  script:
+    - conda create --name rtokens --file requirements.txt
+    - conda activate rtokens
+
+test:
+  stage: pytest
+  script:
+    - pytest tests/
+    - echo "Tests completed"
