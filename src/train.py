@@ -39,7 +39,8 @@ def validation_loop(model, loader, criterion, attack_fn, max_val_steps=None):
             loss_adv += la.item() * len(batch)
             total_mse += mse.item() * len(batch)
 
-    return loss_inv, loss_adv, total_mse
+    n = len(loader.dataset)
+    return loss_inv / n, loss_adv / n, total_mse / n
 
 
 def test_loop(model, loader, criterion, attack_fn):
@@ -68,7 +69,9 @@ def test_loop(model, loader, criterion, attack_fn):
 
             # Image MSE
             total_mse += mse.item() * len(batch)
-    return loss_inv_r, loss_adv_r, loss_inv_d, loss_adv_d, total_mse
+
+    n = len(loader.dataset)
+    return loss_inv_r / n, loss_adv_r / n, loss_inv_d / n, loss_adv_d / n, total_mse / n
 
 
 def main(args):
@@ -120,7 +123,6 @@ def main(args):
     train_loader, val_loader = loaders_fn(
         args["train"]["batch_size"], args["train"]["num_workers"]
     )
-    n_val_samples = len(val_loader.dataset)
 
     # Attacking model on dataset
     steps, best_val_loss = 0, float("inf")
@@ -179,9 +181,9 @@ def main(args):
                     val_loss = l_inv + l_adv
                     wandb.log(
                         {
-                            "Val Loss": (l_inv + l_adv) / n_val_samples,
-                            "Val Loss Invariance": l_inv / n_val_samples,
-                            "Val Loss Adversarial": l_adv / n_val_samples,
+                            "Val Loss": (l_inv + l_adv),
+                            "Val Loss Invariance": l_inv,
+                            "Val Loss Adversarial": l_adv,
                             "Val Image MSE": mse,
                         },
                         step=steps,
@@ -202,19 +204,13 @@ def main(args):
     )
     wandb.log(
         {
-            "Final val Loss (with robustness tokens)": (l_inv_r + l_adv_r)
-            / n_val_samples,
-            "Final val Loss Invariance (with robustness tokens)": l_inv_r
-            / n_val_samples,
-            "Final val Loss Adversarial (with robustness tokens)": l_adv_r
-            / n_val_samples,
-            "Final val Loss (without robustness tokens)": (l_inv_d + l_adv_d)
-            / n_val_samples,
-            "Final val Loss Invariance (without robustness tokens)": l_inv_d
-            / n_val_samples,
-            "Final val Loss Adversarial (without robustness tokens)": l_adv_d
-            / n_val_samples,
-            "Final val Image MSE (with robustness tokens)": mse,
+            "Final Val Loss (with robustness tokens)": (l_inv_r + l_adv_r),
+            "Final Val Loss Invariance (with robustness tokens)": l_inv_r,
+            "Final Val Loss Adversarial (with robustness tokens)": l_adv_r,
+            "Final Val Loss (without robustness tokens)": (l_inv_d + l_adv_d),
+            "Final Val Loss Invariance (without robustness tokens)": l_inv_d,
+            "Final Val Loss Adversarial (without robustness tokens)": l_adv_d,
+            "Final Val Image MSE": mse,
         },
         step=steps,
     )
