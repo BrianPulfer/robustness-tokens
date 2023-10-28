@@ -8,8 +8,6 @@ SUPPORTED_DINOV2_MODELS = [
     "dinov2_vitg14",
 ]
 
-ALL_SUPPORTED_MODELS = SUPPORTED_DINOV2_MODELS
-
 
 def get_model(name, enbable_robust=True, return_cls=False, n_rtokens=1):
     if name in SUPPORTED_DINOV2_MODELS:
@@ -19,7 +17,7 @@ def get_model(name, enbable_robust=True, return_cls=False, n_rtokens=1):
             return_cls=return_cls,
             n_rtokens=n_rtokens,
         )
-    raise KeyError(f"Model {name} not supported. Pick one of {ALL_SUPPORTED_MODELS}")
+    raise KeyError(f"Model {name} not supported. Pick one of {SUPPORTED_DINOV2_MODELS}")
 
 
 class DinoV2Robustifier(Module):

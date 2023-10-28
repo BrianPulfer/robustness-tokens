@@ -1,7 +1,5 @@
 import os
 import random
-import warnings
-from argparse import ArgumentParser
 
 import numpy as np
 import torch
@@ -9,13 +7,14 @@ import yaml
 from tqdm.auto import tqdm
 from accelerate import Accelerator
 from torch.nn.functional import mse_loss
-
 import wandb
+
 from attacks import pgd_attack
 from data.imagenet import get_loaders as imagenet_loaders
 from data.imagenette import get_loaders as imagenette_loaders
 from data.transforms import unnormalize
-from models import get_model
+from models.utils import get_model
+from utils import read_config
 
 
 def validation_loop(model, loader, criterion, attack_fn, max_val_steps=None):
@@ -221,18 +220,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--config", type=str, default=None, help="Path to config file")
-
-    args = vars(parser.parse_args())
-
-    if args["config"] is not None:
-        if os.path.isfile(args["config"]):
-            with open(args["config"], "r") as f:
-                args = yaml.safe_load(f)
-        else:
-            warnings.warn(f"Config file {args['config']} not found.")
-            exit()
-
-    print("\n\nProgram arguments:\n", args)
-    main(args)
+    main(read_config())
