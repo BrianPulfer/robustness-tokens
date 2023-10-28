@@ -8,8 +8,8 @@ def test_dinov2():
         model = get_dinov2_model(name).eval().cuda()
 
         with torch.no_grad():
-            f1 = model(batch, enable_robust=False)
-            f2 = model(batch, enable_robust=True)
+            f1 = model(batch, enable_robust=False, return_cls=True)
+            f2 = model(batch, enable_robust=True, return_cls=True)
             f3 = model.model(batch)
 
             assert torch.allclose(
