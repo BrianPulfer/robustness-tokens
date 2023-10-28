@@ -10,9 +10,8 @@ from torch.nn.functional import mse_loss
 import wandb
 
 from attacks import pgd_attack
-from data.imagenet import get_loaders as imagenet_loaders
-from data.imagenette import get_loaders as imagenette_loaders
 from data.transforms import unnormalize
+from data.utils import get_loaders_fn
 from models.utils import get_model
 from utils import read_config
 
@@ -112,15 +111,10 @@ def main(args):
     wandb.watch(model, log="gradients", log_freq=args["train"]["grad_log_freq"])
 
     # Loading dataset
-    if args["dataset"] == "imagenet":
-        loaders_fn = imagenet_loaders
-    elif args["dataset"] == "imagenette":
-        loaders_fn = imagenette_loaders
-    else:
-        raise KeyError(f"Dataset {args['dataset']} not supported.")
+    loaders_fn = get_loaders_fn(args["dataset"])
 
     train_loader, val_loader = loaders_fn(
-        args["train"]["batch_size"], args["train"]["num_workers"]
+        args["train"]["batch_size"], num_workers=args["train"]["num_workers"]
     )
 
     # Attacking model on dataset
