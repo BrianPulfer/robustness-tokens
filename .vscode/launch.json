@@ -10,9 +10,6 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/src"
-            },
             "justMyCode": true
         },
         {
@@ -21,9 +18,6 @@
             "request": "launch",
             "program": "src/train.py",
             "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/src"
-            },
             "args": [
                 "--config", "configs/default.yaml"
             ],
