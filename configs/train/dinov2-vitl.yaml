@@ -9,7 +9,7 @@ model:
   name: dinov2_vitl14
   return_cls: false
 results_dir: results/large
-run_name: large
+run_name: DinoV2 L | 10 RTokens
 seed: 0
 train:
   batch_size: 64

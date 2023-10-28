@@ -9,7 +9,7 @@ model:
   name: dinov2_vits14
   return_cls: false
 results_dir: results/small
-run_name: small
+run_name: DinoV2 S | 10 RTokens
 seed: 0
 train:
   batch_size: 256
