@@ -3,15 +3,22 @@ image: continuumio/miniconda3:latest
 stages:
   - conda
   - test
+  - lint
 
 conda:
-  stage: create
+  stage: conda
   script:
     - conda create --name rtokens --file requirements.txt
     - conda activate rtokens
 
 test:
-  stage: pytest
+  stage: test
   script:
     - pytest tests/
     - echo "Tests completed"
+
+lint:
+  stage: lint
+  script:
+    - pre-commit install
+    - pre-commit run --all-files
