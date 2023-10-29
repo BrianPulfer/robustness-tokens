@@ -114,7 +114,6 @@ def main(args):
         return_cls=args["model"]["return_cls"],
         n_rtokens=args["model"]["n_rtokens"],
     )
-    wandb.watch(model, log="gradients", log_freq=args["train"]["grad_log_freq"])
 
     # Preparing data loaders
     loaders_fn = get_loaders_fn(args["dataset"])

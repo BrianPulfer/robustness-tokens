@@ -25,7 +25,6 @@ def main():
                     "batch_size": 128,
                     "checkpoint_freq": 30,
                     "criterion": "CosineSimilarity",
-                    "grad_log_freq": 30,
                     "lr": 0.001,
                     "max_steps": steps,
                     "mode": "max",
