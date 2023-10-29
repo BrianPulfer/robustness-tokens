@@ -6,10 +6,10 @@ attack:
 dataset: imagenet
 model:
   n_rtokens: 10
-  name: dinov2_vitl14
+  name: dinov2_vitg14
   return_cls: false
 results_dir: results/large
-run_name: DinoV2 L | 10 RTokens
+run_name: DinoV2 G | 10 RTokens
 seed: 0
 train:
   batch_size: 64

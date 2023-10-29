@@ -19,7 +19,7 @@
             "program": "src/train.py",
             "console": "integratedTerminal",
             "args": [
-                "--config", "configs/default.yaml"
+                "--config", "configs/train/default.yaml"
             ],
             "justMyCode": true
         }

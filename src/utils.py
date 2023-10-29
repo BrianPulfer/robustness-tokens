@@ -1,10 +1,12 @@
 import os
-import yaml
 import warnings
 from argparse import ArgumentParser
 
+import yaml
+
 
 def read_config():
+    """Reads the yaml configuration file passed as argument and returns a dictionary with the configuration parameters."""
     parser = ArgumentParser()
     parser.add_argument("--config", type=str, default=None, help="Path to config file")
 
