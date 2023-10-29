@@ -1,4 +1,5 @@
-from models.dinov2 import SUPPORTED_DINOV2_MODELS, get_model as get_dinov2_model
+from models.dinov2 import SUPPORTED_DINOV2_MODELS
+from models.dinov2 import get_model as get_dinov2_model
 
 ALL_SUPPORTED_MODELS = SUPPORTED_DINOV2_MODELS
 

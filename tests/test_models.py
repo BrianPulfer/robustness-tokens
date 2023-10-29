@@ -1,8 +1,11 @@
 import torch
-from models.dinov2 import SUPPORTED_DINOV2_MODELS, get_model as get_dinov2_model
+
+from models.dinov2 import SUPPORTED_DINOV2_MODELS
+from models.dinov2 import get_model as get_dinov2_model
 
 
 def test_dinov2():
+    """Tests that the DINOv2 models are correctly loaded and return the same output when robustness tokens are disabled."""
     batch = torch.randn(1, 3, 224, 224).cuda()
     for name in SUPPORTED_DINOV2_MODELS:
         model = get_dinov2_model(name).eval().cuda()
