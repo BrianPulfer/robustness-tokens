@@ -44,6 +44,11 @@ def training_loop(
                 with torch.no_grad():
                     target = model(batch, enable_robust=False)
                     mse = mse_loss(unnormalize(batch_adv), unnormalize(batch))
+                    baseline = (
+                        criterion(model(batch_adv, enable_robust=False), target)
+                        .mean()
+                        .item()
+                    )
 
                 for _ in range(steps_per_batch):
                     loss_inv = criterion(
@@ -63,6 +68,7 @@ def training_loop(
                         "Train Image MSE": mse.item(),
                         "Train Loss Invariance": loss_inv.item(),
                         "Train Loss Adversarial": loss_adv.item(),
+                        "Without robustness": baseline,
                     },
                     step=steps,
                 )
@@ -162,9 +168,8 @@ def main(args):
     cossims.to_csv(os.path.join(args["results_dir"], "cossims.csv"))
     mses.to_csv(os.path.join(args["results_dir"], "mses.csv"))
 
-    # wandb.log(
-    #    {"cossims": wandb.Table(dataframe=cossims), "mses": wandb.Table(dataframe=mses)}
-    # )
+    wandb.log(dict(cossims.mean()))
+    wandb.log(dict(mses.mean()))
 
     # Finishing wandb
     wandb.finish()
