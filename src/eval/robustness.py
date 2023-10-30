@@ -7,7 +7,7 @@ from torch.nn.functional import cosine_similarity
 from tqdm.auto import tqdm
 
 from attacks import pgd_attack
-from data.imagenette import get_loaders
+from data.utils import get_loaders_fn
 from models.utils import get_model
 from utils import read_config
 
@@ -52,7 +52,7 @@ def main(args):
     accelerator = Accelerator()
 
     # Data
-    loaders_fn = get_loaders(args["dataset"])
+    loaders_fn = get_loaders_fn(args["dataset"])
     _, val_loader = loaders_fn(args["batch_size"], args["num_workers"])
 
     # Model
