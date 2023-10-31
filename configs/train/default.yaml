@@ -5,18 +5,18 @@ attack:
   steps: 30
 dataset: imagenet
 model:
-  n_rtokens: 10
+  n_rtokens: 0
   name: dinov2_vitb14
   return_cls: false
 results_dir: results/default
 run_name: default
 seed: 0
 train:
-  batch_size: 128
+  batch_size: 8
   checkpoint_freq: 30
   criterion: CosineSimilarity
   lr: 0.001
-  max_steps: 3
+  max_steps: 30
   mode: max
   num_workers: 16
   optimizer: Adam

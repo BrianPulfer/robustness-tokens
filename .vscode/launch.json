@@ -22,6 +22,17 @@
                 "--config", "configs/train/default.yaml"
             ],
             "justMyCode": true
+        },
+        {
+            "name": "Classification",
+            "type": "python",
+            "request": "launch",
+            "program": "src/eval/classification.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "configs/classification/default.yaml"
+            ],
+            "justMyCode": true
         }
     ]
 }
