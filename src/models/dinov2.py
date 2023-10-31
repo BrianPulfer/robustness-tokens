@@ -32,18 +32,23 @@ class DinoV2Robustifier(Module):
         self.model = torch.hub.load("facebookresearch/dinov2", model_name).eval()
         self.enable_robust = enable_robust
         self.return_cls = return_cls
-        self.n_rtokens = n_rtokens
+        self.n_rtokens = max(0, n_rtokens)
 
         hidden_dim = self.model.cls_token.shape[-1]
         self.rtokens = torch.nn.Parameter(1e-2 * torch.randn(1, n_rtokens, hidden_dim))
         # self.rtokens = torch.nn.Parameter(torch.zeros(1, n_rtokens, hidden_dim))
+
+    def get_trainable_parameters(self):
+        if self.n_rtokens > 0:
+            return [self.rtokens]
+        return self.model.parameters()
 
     def forward(self, x, enable_robust=None, return_cls=None, return_rtokens=False):
         b, c, w, h = x.shape
         running_cls = return_cls if return_cls is not None else self.return_cls
         running_robust = (
             enable_robust if enable_robust is not None else self.enable_robust
-        )
+        ) and self.n_rtokens > 0
 
         # Embedding patches
         x = self.model.patch_embed(x)

@@ -135,7 +135,7 @@ def main(args):
     store_path = os.path.join(args["results_dir"], "last.ckpt")
     criterion = getattr(torch.nn, args["train"]["criterion"])()
     optim = getattr(torch.optim, args["train"]["optimizer"])(
-        [model.rtokens],
+        model.get_trainable_parameters(),
         lr=args["train"]["lr"],
         maximize=(args["train"]["mode"] == "max"),
     )

@@ -9,7 +9,7 @@ model_batches_steps = [
 
 def main():
     for model_name, batch_size, steps in model_batches_steps:
-        for ntokens in [1, 2, 10, 30]:
+        for ntokens in [0, 1, 2, 10, 30]:
             d = {
                 "attack": {"eps": 0.0314, "lr": 0.01, "max_mse": 0.0001, "steps": 30},
                 "dataset": "imagenet",
