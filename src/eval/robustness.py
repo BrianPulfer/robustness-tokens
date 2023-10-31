@@ -18,8 +18,8 @@ def evaluate_rtokens(model, loader, attack_fn, accelerator):
     model, loader = accelerator.prepare(model, loader)
 
     modes = ["Standard", "Robust"]
-    cossims = {m1 + "-" + m2: [] for m1 in modes for m2 in modes}
-    mses = {m1 + "-" + m2: [] for m1 in modes for m2 in modes}
+    cossims = {"Cossims " + m1 + "-" + m2: [] for m1 in modes for m2 in modes}
+    mses = {"MSEs " + m1 + "-" + m2: [] for m1 in modes for m2 in modes}
 
     def cossim(f1, f2):
         out = cosine_similarity(f1, f2)
@@ -41,8 +41,8 @@ def evaluate_rtokens(model, loader, attack_fn, accelerator):
                     model.enable_robust = b2
                     f1 = model(batch)
                     f2 = model(batch_adv)
-                    cossims[mode1 + "-" + mode2].extend(cossim(f1, f2))
-                    mses[mode1 + "-" + mode2].extend(mse(f1, f2))
+                    cossims["Cossims " + mode1 + "-" + mode2].extend(cossim(f1, f2))
+                    mses["MSEs " + mode1 + "-" + mode2].extend(mse(f1, f2))
 
     return cossims, mses
 
