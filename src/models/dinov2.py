@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import torch
 from torch.nn import Module
 
@@ -39,37 +41,44 @@ class DinoV2Robustifier(Module):
             self.rtokens = torch.nn.Parameter(
                 1e-2 * torch.randn(1, n_rtokens, hidden_dim)
             )
-            # self.rtokens = torch.nn.Parameter(torch.zeros(1, n_rtokens, hidden_dim))
         else:
-            self.extra_params = torch.nn.ParameterList(
-                [1e-3 * torch.randn_like(p) for p in self.model.parameters()]
-            )
-            self.added_params = False
+            self.model_copy = deepcopy(self.model)
+            self.model.requires_grad_(False)
 
     def get_trainable_parameters(self):
         if self.n_rtokens > 0:
             return [self.rtokens]
-        return self.extra_params
+        return self.model_copy.parameters()
 
     def forward(self, x, enable_robust=None, return_cls=None, return_rtokens=False):
-        b, c, w, h = x.shape
         running_cls = return_cls if return_cls is not None else self.return_cls
         running_robust = (
             enable_robust if enable_robust is not None else self.enable_robust
         )
 
+        h = self.dino_forward(self.model, x, running_robust)
+
         if self.n_rtokens == 0:
             if running_robust:
-                self.add_extra_params()
-            else:
-                self.remove_extra_params()
+                return h + self.dino_forward(self.model_copy, x, running_robust)
+
+        if running_cls:
+            return self.model.head(h[:, 0])
+
+        if not return_rtokens and self.n_rtokens > 0 and running_robust:
+            return h[:, : -self.n_rtokens]
+
+        return h
+
+    def dino_forward(self, model, x, running_robust):
+        b, c, w, h = x.shape
 
         # Embedding patches
-        x = self.model.patch_embed(x)
+        x = model.patch_embed(x)
 
         # Concatenating class token
-        x = torch.cat((self.model.cls_token.expand(b, -1, -1), x), dim=1)
-        x += self.model.interpolate_pos_encoding(x, w, h)
+        x = torch.cat((model.cls_token.expand(b, -1, -1), x), dim=1)
+        x += model.interpolate_pos_encoding(x, w, h)
 
         # Appending robust tokens
         if running_robust and self.n_rtokens > 0:
@@ -78,24 +87,5 @@ class DinoV2Robustifier(Module):
         # Running blocks
         for blk in self.model.blocks:
             x = blk(x)
-        x = self.model.norm(x)
-
-        if running_cls:
-            return self.model.head(x[:, 0])
-
-        if not return_rtokens and self.n_rtokens > 0 and running_robust:
-            return x[:, : -self.n_rtokens]
-
+        x = model.norm(x)
         return x
-
-    def add_extra_params(self):
-        if not self.added_params:
-            for p1, p2 in zip(self.extra_params, self.model.parameters()):
-                p2.data += p1.data
-            self.added_params = True
-
-    def remove_extra_params(self):
-        if self.added_params:
-            for p1, p2 in zip(self.extra_params, self.model.parameters()):
-                p2.data -= p1.data
-            self.added_params = False
