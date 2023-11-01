@@ -5,7 +5,7 @@ attack:
   steps: 30
 dataset: imagenet
 model:
-  n_rtokens: 0
+  n_rtokens: 10
   name: dinov2_vitb14
   return_cls: false
 results_dir: results/default
