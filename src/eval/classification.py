@@ -4,6 +4,8 @@ from torch.optim import Adam
 
 from torchmetrics import Accuracy
 
+from torchvision.transforms import Compose, RandomResizedCrop, RandomHorizontalFlip
+
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -11,6 +13,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from utils import read_config
 from models.utils import get_model
 from data.utils import get_loaders_fn
+from data.transforms import to_tensor, normalize
 
 
 class Classifier(pl.LightningModule):
@@ -21,7 +24,9 @@ class Classifier(pl.LightningModule):
         self.criterion = nn.CrossEntropyLoss()
         self.acc = Accuracy("multiclass", num_classes=1000)
 
-        self.backbone = backbone
+        self.backbone = backbone.eval()
+        self.backbone.requires_grad_(False)
+
         dim = backbone.model.norm.weight.shape[0]
         self.head = nn.Linear(2 * dim, 1000)
 
@@ -39,12 +44,16 @@ class Classifier(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss, acc = self.get_loss_and_acc(batch)
-        self.log_dict({"train_loss": loss.item(), "train_acc": acc.item()})
+        self.log_dict(
+            {"train_loss": loss.item(), "train_acc": acc.item()}, sync_dist=True
+        )
         return loss
 
     def test_step(self, batch, batch_idx):
         loss, acc = self.get_loss_and_acc(batch)
-        self.log_dict({"test_loss": loss.item(), "test_acc": acc.item()})
+        self.log_dict(
+            {"test_loss": loss.item(), "test_acc": acc.item()}, sync_dist=True
+        )
         return loss
 
     def configure_optimizers(self):
@@ -75,8 +84,20 @@ def main(args):
 
     # Dataset
     loaders_fn = get_loaders_fn("imagenet")
+
+    train_transform = Compose(
+        [
+            RandomResizedCrop(224, scale=(0.5, 1.0)),
+            RandomHorizontalFlip(p=0.5),
+            to_tensor,
+            normalize,
+        ]
+    )
+
     train_loader, val_loader = loaders_fn(
-        args["train"]["batch_size"], num_workers=args["train"]["num_workers"]
+        args["train"]["batch_size"],
+        num_workers=args["train"]["num_workers"],
+        train_transform=train_transform,
     )
 
     # Training
@@ -100,7 +121,7 @@ def main(args):
     )
     trainer.fit(model, train_loader)
 
-    # Testing
+    # Testing (latest model is used)
     trainer.test(model, val_loader)
 
 
