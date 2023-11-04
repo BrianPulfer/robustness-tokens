@@ -1,4 +1,7 @@
+ftfy
+mmsegmentation
 numpy
+openmim
 Pillow
 python-dotenv
 torch

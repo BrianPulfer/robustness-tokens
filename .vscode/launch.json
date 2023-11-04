@@ -33,6 +33,17 @@
                 "--config", "configs/classification/default.yaml"
             ],
             "justMyCode": true
+        },
+        {
+            "name": "Segmentation",
+            "type": "python",
+            "request": "launch",
+            "program": "src/eval/segmentation.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "configs/segmentation/default.yaml"
+            ],
+            "justMyCode": true
         }
     ]
 }
