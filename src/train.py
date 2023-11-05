@@ -26,7 +26,6 @@ def training_loop(
     optim,
     accelerator,
     max_steps,
-    steps_per_batch,
     checkpoint_freq,
     store_path,
 ):
@@ -50,17 +49,14 @@ def training_loop(
                         .item()
                     )
 
-                for _ in range(steps_per_batch):
-                    loss_inv = criterion(
-                        model(batch, enable_robust=True), target
-                    ).mean()
-                    loss_adv = criterion(
-                        model(batch_adv, enable_robust=True), target
-                    ).mean()
-                    loss = loss_inv + loss_adv
-                    optim.zero_grad()
-                    accelerator.backward(loss)
-                    optim.step()
+                loss_inv = criterion(model(batch, enable_robust=True), target).mean()
+                loss_adv = criterion(
+                    model(batch_adv, enable_robust=True), target
+                ).mean()
+                loss = loss_inv + loss_adv
+                optim.zero_grad()
+                accelerator.backward(loss)
+                optim.step()
 
                 wandb.log(
                     {
@@ -129,7 +125,6 @@ def main(args):
 
     # Training hyper-parameters
     max_steps = args["train"]["max_steps"]
-    steps_per_batch = args["train"]["steps_per_batch"]
     checkpoint_freq = args["train"]["checkpoint_freq"]
     store_path = os.path.join(args["results_dir"], "last.ckpt")
     criterion = getattr(torch.nn, args["train"]["criterion"])()
@@ -149,7 +144,6 @@ def main(args):
         optim,
         accelerator,
         max_steps,
-        steps_per_batch,
         checkpoint_freq,
         store_path,
     )

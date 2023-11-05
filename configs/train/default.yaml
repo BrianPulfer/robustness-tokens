@@ -20,4 +20,3 @@ train:
   mode: max
   num_workers: 16
   optimizer: Adam
-  steps_per_batch: 1
