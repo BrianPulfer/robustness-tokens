@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 
+from torchmetrics import JaccardIndex
+
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -11,17 +13,26 @@ from models.utils import get_model
 from data.utils import get_loaders_fn
 
 
-class IoU(nn.Module):
-    def __init__(self):
+class PixelAccuracy(nn.Module):
+    def __init__(self, ignore_index=0):
         super().__init__()
+        self.ignore_index = ignore_index
 
     def forward(self, y_hat, y):
-        y_hat = torch.argmax(y_hat, dim=1)
+        y_hat = torch.argmax(y_hat, dim=1).squeeze()
+
+        if self.ignore_index is not None:
+            mask = y != self.ignore_index
+            y_hat = y_hat[mask]
+            y = y[mask]
+
         return (y_hat == y).float().mean()
 
 
 class SegmentationModel(pl.LightningModule):
-    def __init__(self, backbone, num_classes=3688, lr=1e-3, optim_fn=Adam):
+    def __init__(
+        self, backbone, num_classes=3688, lr=1e-3, optim_fn=Adam, ignore_index=0
+    ):
         super().__init__()
 
         self.num_classes = num_classes
@@ -29,8 +40,11 @@ class SegmentationModel(pl.LightningModule):
 
         self.lr = lr
         self.optim_fn = optim_fn
-        self.criterion = nn.CrossEntropyLoss()
-        self.iou = IoU()
+        self.criterion = nn.CrossEntropyLoss(ignore_index=ignore_index)
+        self.accuracy = PixelAccuracy(ignore_index=ignore_index)
+        self.iou_metric = JaccardIndex(
+            task="multiclass", num_classes=num_classes, ignore_index=ignore_index
+        )
 
         # Backbone network
         self.backbone = backbone.eval()
@@ -62,24 +76,31 @@ class SegmentationModel(pl.LightningModule):
 
         return out
 
-    def get_loss_and_iou(self, batch):
+    def get_loss(self, batch):
         image, label = batch["image"], batch["label"]
         y_hat = self(image)
         loss = self.criterion(y_hat, label)
-        iou = self.iou(y_hat, label)
-        return loss, iou
+        acc = self.accuracy(y_hat, label)
+        iou = self.iou_metric(y_hat, label)
+        return loss, acc, iou
 
     def training_step(self, batch, batch_idx):
-        loss, iou = self.get_loss_and_iou(batch)
+        loss, acc, iou = self.get_loss(batch)
         self.log_dict(
-            {"train_loss": loss.item(), "train_iou": iou.item()}, sync_dist=True
+            {
+                "train_loss": loss.item(),
+                "train_pixel_acc": acc.item(),
+                "train_mIoU": iou.item(),
+            },
+            sync_dist=True,
         )
         return loss
 
     def test_step(self, batch, batch_idx):
-        loss, iou = self.get_loss_and_iou(batch)
+        loss, acc, iou = self.get_loss(batch)
         self.log_dict(
-            {"test_loss": loss.item(), "test_iou": iou.item()}, sync_dist=True
+            {"test_loss": loss.item(), "test_pixel_acc": acc.item(), "test_mIoU": iou},
+            sync_dist=True,
         )
         return loss
 
@@ -89,6 +110,8 @@ class SegmentationModel(pl.LightningModule):
 
 
 def main(args):
+    """Runs linear segmentation on ADE20K."""
+
     # Setting random seed
     pl.seed_everything(args["seed"])
 
