@@ -72,7 +72,6 @@ class SegmentationModel(pl.LightningModule):
         out = torch.nn.functional.interpolate(
             out, size=(h, w), mode="bilinear", align_corners=False
         )
-        # out = torch.cat([torch.nn.functional.interpolate(out[i].unsqueeze(0), size=(h, w), mode='bilinear', align_corners=False) for i in range(b)], dim=0)
 
         return out
 
@@ -99,7 +98,11 @@ class SegmentationModel(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         loss, acc, iou = self.get_loss(batch)
         self.log_dict(
-            {"test_loss": loss.item(), "test_pixel_acc": acc.item(), "test_mIoU": iou},
+            {
+                "test_loss": loss.item(),
+                "test_pixel_acc": acc.item(),
+                "test_mIoU": iou.item(),
+            },
             sync_dist=True,
         )
         return loss
