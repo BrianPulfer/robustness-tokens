@@ -24,6 +24,7 @@ Create a `.env` file in the root directory of the project with the following con
 PYTHONPATH=src
 IMAGENET_DIR=$path_to_imagenet_dataset
 ADE20K_DIR=$path_to_ade20k_dataset
+NYUD_DIR=$path_to_nyud_dataset
 ```
 
 ## Training
@@ -46,7 +47,7 @@ PYTHONPATH=src/ python src/eval/classification.py --config $path_to_file
 
 
 ### Segmentation
-To evaluate segmentation capabilities, first install [MMSegmentation and MMCV](https://github.com/open-mmlab/mmsegmentation/blob/main/docs/en/get_started.md#installation):
+To evaluate segmentation capabilities, first install [MMSegmentation](https://github.com/open-mmlab/mmsegmentation/blob/main/docs/en/get_started.md#installation):
 
 ```bash
 pip install -U openmim
