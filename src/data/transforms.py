@@ -8,7 +8,8 @@ unnormalize = tt.Normalize(
     [-m / s for m, s in zip(IMAGENET_MEAN, IMAGENET_STD)], [1 / s for s in IMAGENET_STD]
 )
 
+resize = tt.Resize((224, 224))
 to_tensor = tt.ToTensor()
 to_pil = tt.ToPILImage()
 
-default_transform = tt.Compose([tt.Resize((224, 224)), tt.ToTensor(), normalize])
+default_transform = tt.Compose([resize, to_tensor, normalize])
