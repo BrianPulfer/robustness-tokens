@@ -10,8 +10,6 @@ from utils import read_config
 from data.utils import get_loaders_fn
 from models.utils import get_model
 
-# from eval.utils.adabins import
-
 
 class RMSELoss(nn.Module):
     def __init__(self):
