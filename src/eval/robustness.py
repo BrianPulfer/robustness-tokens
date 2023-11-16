@@ -17,7 +17,7 @@ def evaluate_rtokens(model, loader, attack_fn, accelerator):
     # Preparing accelerator
     model, loader = accelerator.prepare(model, loader)
 
-    modes = ["Standard", "Robust"]
+    modes = ["Robust", "Standard"]
     cossims = {"Cossims " + m1 + "-" + m2: [] for m1 in modes for m2 in modes}
     mses = {"MSEs " + m1 + "-" + m2: [] for m1 in modes for m2 in modes}
 
