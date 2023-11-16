@@ -44,6 +44,17 @@
                 "--config", "configs/segmentation/default.yaml"
             ],
             "justMyCode": true
+        },
+        {
+            "name": "Depth",
+            "type": "python",
+            "request": "launch",
+            "program": "src/eval/depth.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "configs/depth/default.yaml"
+            ],
+            "justMyCode": true
         }
     ]
 }
