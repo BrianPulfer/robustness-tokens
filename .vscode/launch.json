@@ -13,48 +13,34 @@
             "justMyCode": true
         },
         {
-            "name": "Train",
+            "name": "Train robustness",
             "type": "python",
             "request": "launch",
-            "program": "src/train.py",
+            "program": "src/train/robustness.py",
             "console": "integratedTerminal",
             "args": [
-                "--config", "configs/train/default.yaml"
+                "--config",
+                "configs/train/robustness.yaml"
             ],
+            "env": {
+                "PYTHONPATH": "src"
+            },
             "justMyCode": true
         },
         {
-            "name": "Classification",
+            "name": "Eval robustness",
             "type": "python",
             "request": "launch",
-            "program": "src/eval/classification.py",
+            "program": "src/eval/robustness.py",
             "console": "integratedTerminal",
             "args": [
-                "--config", "configs/classification/default.yaml"
+                "--config",
+                "configs/eval/robustness.yaml"
             ],
+            "env": {
+                "PYTHONPATH": "src"
+            },
             "justMyCode": true
         },
-        {
-            "name": "Segmentation",
-            "type": "python",
-            "request": "launch",
-            "program": "src/eval/segmentation.py",
-            "console": "integratedTerminal",
-            "args": [
-                "--config", "configs/segmentation/default.yaml"
-            ],
-            "justMyCode": true
-        },
-        {
-            "name": "Depth",
-            "type": "python",
-            "request": "launch",
-            "program": "src/eval/depth.py",
-            "console": "integratedTerminal",
-            "args": [
-                "--config", "configs/depth/default.yaml"
-            ],
-            "justMyCode": true
-        }
     ]
 }

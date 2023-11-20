@@ -2,7 +2,6 @@ import os
 import random
 
 import numpy as np
-import pandas as pd
 import torch
 import yaml
 from accelerate import Accelerator
@@ -10,15 +9,14 @@ from torch.nn.functional import mse_loss
 from tqdm.auto import tqdm
 
 import wandb
-from attacks import pgd_attack
+from attacks.utils import get_attack
 from data.transforms import unnormalize
 from data.utils import get_loaders_fn
-from eval.robustness import evaluate_rtokens
 from models.utils import get_model
 from utils import read_config
 
 
-def training_loop(
+def train_rtokens(
     model,
     loader,
     criterion,
@@ -94,28 +92,11 @@ def main(args):
     os.makedirs(args["results_dir"], exist_ok=True)
     yaml.dump(args, open(os.path.join(args["results_dir"], "config.yaml"), "w"))
 
-    # Defining attack function
-    def attack_fn(model, batch):
-        mode = model.enable_robust
-        model.enable_robust = False
-        batch_adv = pgd_attack(
-            model,
-            batch,
-            steps=args["attack"]["steps"],
-            lr=args["attack"]["lr"],
-            eps=args["attack"]["eps"],
-            max_mse=args["attack"]["max_mse"],
-        )
-        model.enable_robust = mode
-        return batch_adv
-
     # Initializing model
-    model = get_model(
-        args["model"]["name"],
-        enbable_robust=True,
-        return_cls=args["model"]["return_cls"],
-        n_rtokens=args["model"]["n_rtokens"],
-    )
+    model = get_model(**args["model"])
+
+    # Defining attack function
+    attack_fn = get_attack(model, **args["attack"])
 
     # Preparing data loaders
     loaders_fn = get_loaders_fn(args["dataset"])
@@ -136,7 +117,7 @@ def main(args):
 
     # Training loop
     accelerator = Accelerator()
-    training_loop(
+    train_rtokens(
         model,
         train_loader,
         criterion,
@@ -147,22 +128,6 @@ def main(args):
         checkpoint_freq,
         store_path,
     )
-
-    # Loading latest model
-    torch.cuda.empty_cache()
-    model.load_state_dict(torch.load(store_path, map_location=accelerator.device))
-
-    # Computing metrics on val set
-    cossims, mses = evaluate_rtokens(model, val_loader, attack_fn, accelerator)
-
-    # Saving metrics
-    cossims = pd.DataFrame.from_dict(cossims)
-    mses = pd.DataFrame.from_dict(mses)
-    cossims.to_csv(os.path.join(args["results_dir"], "cossims.csv"))
-    mses.to_csv(os.path.join(args["results_dir"], "mses.csv"))
-
-    wandb.log(dict(cossims.mean()))
-    wandb.log(dict(mses.mean()))
 
     # Finishing wandb
     wandb.finish()

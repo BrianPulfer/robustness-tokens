@@ -1,11 +1,6 @@
 import torch
 from torch.nn.functional import cosine_similarity, mse_loss
-
 from data.transforms import normalize, to_pil, to_tensor, unnormalize
-
-
-def psnr_to_mse(psnr):
-    return 10 ** (-psnr / 10)
 
 
 def validate(batch):

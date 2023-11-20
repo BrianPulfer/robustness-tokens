@@ -3,6 +3,7 @@
 /slurm/
 notes.txt
 /results/
+/mmsegmentation
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

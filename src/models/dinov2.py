@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import torch
 from torch.nn import Module
 
@@ -8,22 +6,25 @@ SUPPORTED_DINOV2_MODELS = [
     "dinov2_vitb14",
     "dinov2_vitl14",
     "dinov2_vitg14",
+    "dinov2_vits14_reg",
+    "dinov2_vitb14_reg",
+    "dinov2_vitl14_reg",
+    "dinov2_vitg14_reg",
 ]
 
 
-def get_model(name, enbable_robust=True, return_cls=False, n_rtokens=1):
+def get_model(name, n_rtokens=1, enbable_robust=True):
     if name in SUPPORTED_DINOV2_MODELS:
         return DinoV2Robustifier(
             model_name=name,
             enable_robust=enbable_robust,
-            return_cls=return_cls,
             n_rtokens=n_rtokens,
         )
     raise KeyError(f"Model {name} not supported. Pick one of {SUPPORTED_DINOV2_MODELS}")
 
 
 class DinoV2Robustifier(Module):
-    def __init__(self, model_name, enable_robust=False, return_cls=False, n_rtokens=1):
+    def __init__(self, model_name, n_rtokens=10, enable_robust=False):
         super(DinoV2Robustifier, self).__init__()
 
         assert (
@@ -33,7 +34,6 @@ class DinoV2Robustifier(Module):
         self.model_name = model_name
         self.model = torch.hub.load("facebookresearch/dinov2", model_name).eval()
         self.enable_robust = enable_robust
-        self.return_cls = return_cls
         self.n_rtokens = max(0, n_rtokens)
 
         if self.n_rtokens > 0:
@@ -41,44 +41,35 @@ class DinoV2Robustifier(Module):
             self.rtokens = torch.nn.Parameter(
                 1e-2 * torch.randn(1, n_rtokens, hidden_dim)
             )
-        else:
-            self.model_copy = deepcopy(self.model)
-            self.model.requires_grad_(False)
 
     def get_trainable_parameters(self):
         if self.n_rtokens > 0:
             return [self.rtokens]
-        return self.model_copy.parameters()
+        return self.parameters()
 
-    def forward(self, x, enable_robust=None, return_cls=None, return_rtokens=False):
-        running_cls = return_cls if return_cls is not None else self.return_cls
+    def forward(self, x, enable_robust=None, return_all=False):
         running_robust = (
             enable_robust if enable_robust is not None else self.enable_robust
         )
 
-        h = self.dino_forward(self.model, x, running_robust)
+        return self.dino_forward(x, running_robust, return_all)
 
-        if self.n_rtokens == 0:
-            if running_robust:
-                return h + self.dino_forward(self.model_copy, x, running_robust)
-
-        if running_cls:
-            return self.model.head(h[:, 0])
-
-        if not return_rtokens and self.n_rtokens > 0 and running_robust:
-            return h[:, : -self.n_rtokens]
-
-        return h
-
-    def dino_forward(self, model, x, running_robust):
+    def dino_forward(self, x, running_robust, return_all=False):
         b, c, w, h = x.shape
 
         # Embedding patches
-        x = model.patch_embed(x)
+        x = self.model.patch_embed(x)
 
-        # Concatenating class token
-        x = torch.cat((model.cls_token.expand(b, -1, -1), x), dim=1)
-        x += model.interpolate_pos_encoding(x, w, h)
+        # Concatenating class token + positional encoding
+        x = torch.cat((self.model.cls_token.expand(b, -1, -1), x), dim=1)
+        x += self.model.interpolate_pos_encoding(x, w, h)
+
+        # Concatenating registers
+        if self.model.register_tokens is not None:
+            x = torch.cat(
+                (x[:, :1], self.model.register_tokens.expand(b, -1, -1), x[:, 1:]),
+                dim=1,
+            )
 
         # Appending robust tokens
         if running_robust and self.n_rtokens > 0:
@@ -87,5 +78,27 @@ class DinoV2Robustifier(Module):
         # Running blocks
         for blk in self.model.blocks:
             x = blk(x)
-        x = model.norm(x)
-        return x
+
+        x_norm = self.model.norm(x)
+
+        # Counting the number of tokens used
+        regt = (
+            self.model.num_register_tokens
+            if self.model.register_tokens is not None
+            else 0
+        )
+        robt = self.n_rtokens if running_robust else 0
+
+        cls_tokens = x_norm[:, 0]
+        patch_tokens = x_norm[:, regt + 1 : (None if robt == 0 else -robt)]
+
+        if return_all:
+            return {
+                "x_norm_clstoken": cls_tokens,
+                "x_norm_regtokens": x_norm[:, 1 : regt + 1] if regt > 0 else None,
+                "x_norm_patchtokens": patch_tokens,
+                "x_norm_rtokens": x_norm[:, -robt:] if robt > 0 else None,
+                "x_prenorm": x,
+            }
+
+        return torch.cat((cls_tokens.unsqueeze(1), patch_tokens), dim=1)

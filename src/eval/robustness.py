@@ -6,13 +6,13 @@ from accelerate import Accelerator
 from torch.nn.functional import cosine_similarity
 from tqdm.auto import tqdm
 
-from attacks import pgd_attack
+from attacks.utils import get_attack
 from data.utils import get_loaders_fn
 from models.utils import get_model
 from utils import read_config
 
 
-def evaluate_rtokens(model, loader, attack_fn, accelerator):
+def evaluate_robustness(model, loader, attack_fn, accelerator):
     """Test loop that evaluates robustness of the model compared to the baseline."""
     # Preparing accelerator
     model, loader = accelerator.prepare(model, loader)
@@ -56,40 +56,18 @@ def main(args):
     _, val_loader = loaders_fn(args["batch_size"], args["num_workers"])
 
     # Model
-    model = get_model(
-        args["model"]["name"],
-        enbable_robust=True,
-        return_cls=args["model"]["return_cls"],
-        n_rtokens=args["model"]["n_rtokens"],
-    )
-
+    model = get_model(**args["model"])
     model, val_loader = accelerator.prepare(model, val_loader)
 
     model.load_state_dict(
         torch.load(args["state_dict"], map_location=accelerator.device)
     )
 
-    criterion = getattr(torch.nn, args["train"]["criterion"])()
-
-    def attack_fn(model, batch):
-        mode = model.enable_robust
-        model.enable_robust = False
-        batch_adv = pgd_attack(
-            model,
-            batch,
-            steps=args["attack"]["steps"],
-            lr=args["attack"]["lr"],
-            eps=args["attack"]["eps"],
-            max_mse=args["attack"]["max_mse"],
-        )
-        model.enable_robust = mode
-        return batch_adv
+    attack_fn = get_attack(model, **args["attack"])
 
     # Attacking "robust" model
     accelerator = Accelerator()
-    cossims, mses = evaluate_rtokens(
-        model, val_loader, criterion, attack_fn, accelerator
-    )
+    cossims, mses = evaluate_robustness(model, val_loader, attack_fn, accelerator)
 
     # Saving metrics
     rdir = args["results_dir"]

@@ -17,6 +17,17 @@ conda activate rtokens
 pip install -r requirements.txt
 ```
 
+To be able to train and test segmentation and depth estimation models, install [MMSegmentation](https://github.com/open-mmlab/mmsegmentation/blob/main/docs/en/get_started.md#installation):
+
+```bash
+pip install -U openmim
+mim install mmengine
+mim install mmcv
+git clone -b main https://github.com/open-mmlab/mmsegmentation.git
+cd mmsegmentation
+pip install -v -e .
+```
+
 ### Dotenv file
 Create a `.env` file in the root directory of the project with the following content:
 
@@ -31,10 +42,11 @@ NYUD_DIR=$path_to_nyud_dataset
 To train robustness tokens for a pre-trained DinoV2 model, run:
 
 ```bash
-PYTHONPATH=src/ python src/train.py --config $path_to_file
+PYTHONPATH=src/ python src/train/robustness.py --config $path_to_file
 ```
 
-An example of training configuration file can be found in [`configs/train/default.yaml`](configs/train/default.yaml).
+An example of training configuration file can be found in [`configs/train/robustness.yaml`](configs/train/robustness.yaml).
+Downstream task models can be obtained starting from the original model (without robustness tokens), with
 
 ## Evaluation
 
@@ -47,18 +59,7 @@ PYTHONPATH=src/ python src/eval/classification.py --config $path_to_file
 
 
 ### Segmentation
-To evaluate segmentation capabilities, first install [MMSegmentation](https://github.com/open-mmlab/mmsegmentation/blob/main/docs/en/get_started.md#installation):
-
-```bash
-pip install -U openmim
-mim install mmengine
-mim install "mmcv>=2.0.0"
-git clone -b main https://github.com/open-mmlab/mmsegmentation.git
-cd mmsegmentation
-pip install -v -e .
-```
-
-then download the [ADE20k dataset](https://groups.csail.mit.edu/vision/datasets/ADE20K/). Finally run:
+First download the [ADE20k dataset](https://groups.csail.mit.edu/vision/datasets/ADE20K/). Then run:
 
 ```bash
 # Evaluate segmentation performance
@@ -68,6 +69,14 @@ PYTHONPATH=src/ python src/eval/segmentation.py --config $path_to_file
 ### Depth estimation
 
 (⚠️ **Warning**: this is still work in progress and won't currently work ⚠️)
+
+Get the [nyu dataset](https://github.com/open-mmlab/mmsegmentation/blob/main/docs/en/user_guides/2_dataset_prepare.md#nyu) and convert it using the script under `mmsegmentation` :
+
+```bash
+python tools/dataset_converters/nyu.py nyu.zip
+```
+
+then, run:
 
 ```bash
 # Evaluate depth estimation performance
