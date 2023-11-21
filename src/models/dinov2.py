@@ -47,6 +47,18 @@ class DinoV2Robustifier(Module):
             return [self.rtokens]
         return self.parameters()
 
+    def store_rtokens(self, path=None):
+        if self.n_rtokens > 0:
+            if path is None:
+                path = f"{self.model_name}_rtokens.pt"
+            torch.save({"rtokens": self.rtokens}, path)
+
+    def load_rtokens(self, path=None, device=None):
+        if self.n_rtokens > 0:
+            if path is None:
+                path = f"{self.model_name}_rtokens.pt"
+            self.rtokens = torch.load(path, map_location=device)["rtokens"]
+
     def forward(self, x, enable_robust=None, return_all=False):
         running_robust = (
             enable_robust if enable_robust is not None else self.enable_robust

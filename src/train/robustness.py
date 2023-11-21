@@ -30,6 +30,8 @@ def train_rtokens(
     """Training loop to optimize robustness tokens."""
     # Preparing model, optimizer and data loader
     model, optim, loader = accelerator.prepare(model, optim, loader)
+    model_path = os.path.join(store_path, "last.ckpt")
+    tokens_path = os.path.join(store_path, "rtokens.pt")
 
     # Loop
     steps = 0
@@ -71,11 +73,13 @@ def train_rtokens(
                 pbar.update(1)
 
                 if steps % checkpoint_freq == 0:
-                    torch.save(accelerator.get_state_dict(model), store_path)
+                    torch.save(accelerator.get_state_dict(model), model_path)
+                    model.store_rtokens(tokens_path)
 
                 if steps >= max_steps:
                     break
-    torch.save(accelerator.get_state_dict(model), store_path)
+    torch.save(accelerator.get_state_dict(model), model_path)
+    model.store_rtokens(tokens_path)
 
 
 def main(args):
@@ -107,7 +111,7 @@ def main(args):
     # Training hyper-parameters
     max_steps = args["train"]["max_steps"]
     checkpoint_freq = args["train"]["checkpoint_freq"]
-    store_path = os.path.join(args["results_dir"], "last.ckpt")
+    store_path = args["results_dir"]
     criterion = getattr(torch.nn, args["train"]["criterion"])()
     optim = getattr(torch.optim, args["train"]["optimizer"])(
         model.get_trainable_parameters(),
