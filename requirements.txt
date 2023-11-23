@@ -1,8 +1,16 @@
+accelerate
 ftfy
+fvcore
+iopath
 mmsegmentation
 numpy
+omegaconf
 openmim
+pandas
 Pillow
 python-dotenv
 torch
+torchmetrics
 torchvision
+tqdm
+wandb
