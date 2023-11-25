@@ -7,7 +7,10 @@ def convert_checkpoint(sd):
     sd = {k.replace("model.", ""): v for k, v in sd.items()}
 
     # Append "rtokens" to "register_tokens"
-    sd["register_tokens"] = torch.cat([sd["register_tokens"], sd["rtokens"]], dim=1)
+    if "register_tokens" not in sd:
+        sd["register_tokens"] = sd["rtokens"]
+    else:
+        sd["register_tokens"] = torch.cat([sd["register_tokens"], sd["rtokens"]], dim=1)
 
     # Remove "rtokens"
     del sd["rtokens"]

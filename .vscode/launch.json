@@ -43,6 +43,21 @@
             "justMyCode": true
         },
         {
+            "name": "Convert",
+            "type": "python",
+            "request": "launch",
+            "program": "src/convert.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--checkpoint", "results/dinov2_vitb14/last.ckpt",
+                "--output", "results/dinov2_vitb14/last.pth"
+            ],
+            "env": {
+                "PYTHONPATH": "src"
+            },
+            "justMyCode": true
+        },
+        {
             "name": "Eval classification",
             "type": "python",
             "request": "launch",
@@ -60,6 +75,7 @@
                 "--nodes", "1",
                 "--gpus", "1",
                 "--batch-size", "128",
+                "--timeout", "604800"
             ],
             "env": {
                 "PYTHONPATH": "src/dinov2",
