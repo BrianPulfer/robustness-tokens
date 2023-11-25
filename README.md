@@ -1,87 +1,75 @@
 # Robustness Tokens
 
 ## Set-up
+We build on top of the official [DinoV2](https://github.com/facebookresearch/dinov2) implementation. In particular, our code:
+  - Allows training robustness tokens
+  - Implements adversarial attacks (PGD)
+  - Converts obtained robustness tokens into a valid checkpoint for evaluation with the DinoV2 codebase
+
+We use the official [DinoV2](https://github.com/facebookresearch/dinov2) codebase for evaluation of robustness tokens on downstream tasks:
+  - Classification
+  - Semantic segmentation
+  - Depth estimation
+
+For each task, we evaluate the performances of the original model and of the model with robustness tokens, both on clean and adversarial examples.
+
+
 ### Conda environment
-Create a conda environment with the required dependencies with either:
+Create the conda environment using the provided `environment.yml` file:
 
 ```bash
-conda create --file environment.yml
+conda env create -f environment.yml
 conda activate rtokens
 ```
 
-or
+### Clone DinoV2
+Clone the [DinoV2](https://github.com/facebookresearch/dinov2) repository under `/src`:
 
 ```bash
-conda create -n rtokens python=3.11
-conda activate rtokens
-pip install -r requirements.txt
+cd src/
+git clone -b main https://github.com/facebookresearch/dinov2.git
 ```
 
-To be able to train and test segmentation and depth estimation models, install [MMSegmentation](https://github.com/open-mmlab/mmsegmentation/blob/main/docs/en/get_started.md#installation):
 
-```bash
-pip install -U openmim
-mim install mmengine
-mim install mmcv
-git clone -b main https://github.com/open-mmlab/mmsegmentation.git
-cd mmsegmentation
-pip install -v -e .
+### Datasets
+We use the [ImageNet](https://image-net.org/) dataset for training robustness tokens and to evaluate linear classification capabilities. For segmentation, we use the [ADE20k dataset](https://groups.csail.mit.edu/vision/datasets/ADE20K/) dataset, whereas for depth estimation, we use the [NYU Depth v2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) dataset.
+
+For the **ImageNet** dataset, pre-process the dataset as described in the [DinoV2](https://github.com/facebookresearch/dinov2/blob/main/README.md) codebase:
+```python
+from dinov2.data.datasets import ImageNet
+
+for split in ImageNet.Split:
+    dataset = ImageNet(split=split, root=your_imagenet_dir, extra=your_extra_dir)
+    dataset.dump_extra()
 ```
 
-### Dotenv file
-Create a `.env` file in the root directory of the project with the following content:
 
-```bash
-PYTHONPATH=src
-IMAGENET_DIR=$path_to_imagenet_dataset
-ADE20K_DIR=$path_to_ade20k_dataset
-NYUD_DIR=$path_to_nyud_dataset
-```
-
-## Training
+## Training robustness tokens
 To train robustness tokens for a pre-trained DinoV2 model, run:
 
 ```bash
 PYTHONPATH=src/ python src/train/robustness.py --config $path_to_file
 ```
 
-An example of training configuration file can be found in [`configs/train/robustness.yaml`](configs/train/robustness.yaml).
-Downstream task models can be obtained starting from the original model (without robustness tokens), with
+An example of training configuration file can be found in [`configs/train/default.yaml`](configs/train/default.yaml). This will result in a checkpoint file containing the robustness tokens.
 
-## Evaluation
-
-### Classification
+## Evaluating robustness tokens
+You can evaluate the robustness of features extracted by models with or without robustness tokens to adversarial attacks.
 
 ```bash
-# Evaluate classification performance
-PYTHONPATH=src/ python src/eval/classification.py --config $path_to_file
+PYTHONPATH=src/ python src/eval/robustness.py --config $path_to_file
 ```
 
+An example of training configuration file can be found in [`configs/eval/default.yaml`](configs/eval/default.yaml).
 
-### Segmentation
-First download the [ADE20k dataset](https://groups.csail.mit.edu/vision/datasets/ADE20K/). Then run:
+## Evaluation on downstream tasks
+For evaluation, we convert our checkpoints into a valid checkpoint for the DinoV2 codebase.
 
 ```bash
-# Evaluate segmentation performance
-PYTHONPATH=src/ python src/eval/segmentation.py --config $path_to_file
+PYTHONPATH=src/ python src/eval/convert.py --checkpoint $path_to_file --output $path_to_file
 ```
 
-### Depth estimation
-
-(⚠️ **Warning**: this is still work in progress and won't currently work ⚠️)
-
-Get the [nyu dataset](https://github.com/open-mmlab/mmsegmentation/blob/main/docs/en/user_guides/2_dataset_prepare.md#nyu) and convert it using the script under `mmsegmentation` :
-
-```bash
-python tools/dataset_converters/nyu.py nyu.zip
-```
-
-then, run:
-
-```bash
-# Evaluate depth estimation performance
-PYTHONPATH=src/ python src/eval/depth.py --config $path_to_file
-```
+The robustness tokens are converted into DinoV2 *register* tokens and appended before patch tokens. Refer to the [DinoV2](https://github.com/facebookresearch/dinov2) codebase for more details.
 
 ##  License
 The code is released with the [MIT license](LICENSE).

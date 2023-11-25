@@ -9,6 +9,7 @@ import pandas as pd
 from accelerate import Accelerator
 
 from utils import read_config
+from convert import convert_checkpoint
 from attacks.utils import get_attack
 from models.utils import get_model
 from data.utils import get_loaders_fn
@@ -83,6 +84,12 @@ def main(args):
 
     wandb.log(dict(cossims.mean()))
     wandb.log(dict(mses.mean()))
+
+    # Converting checkpoint
+    torch.save(
+        convert_checkpoint(model.cpu().state_dict()),
+        os.path.join(args["results_dir"], "last.pth"),
+    )
 
     # Finishing wandb
     wandb.finish()
