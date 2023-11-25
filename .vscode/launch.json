@@ -5,14 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
             "name": "Train robustness",
             "type": "python",
             "request": "launch",
@@ -64,9 +56,9 @@
             "program": "src/dinov2/dinov2/run/eval/linear.py",
             "console": "integratedTerminal",
             "args": [
-                "--config-file", "src/dinov2/dinov2/configs/eval/vitb14_reg4_pretrain.yaml",
-                "--pretrained-weights", "src/dinov2/weights/dinov2_vitb14_reg4_pretrain.pth",
-                "--output-dir", "results/eval/dinov2_vitb14_reg4/linear",
+                "--config-file", "configs/eval/classification/vitb14_reg.yaml",
+                "--pretrained-weights", "results/dinov2_vitb14_reg/last.pth",
+                "--output-dir", "results/dinov2_vitb14_reg/linear",
                 "--train-dataset", "ImageNet:split=TRAIN:root=/srv/beegfs/scratch/users/p/pulfer/datasets/imagenet:extra=/srv/beegfs/scratch/users/p/pulfer/datasets/extra",
                 "--val-dataset", "ImageNet:split=VAL:root=/srv/beegfs/scratch/users/p/pulfer/datasets/imagenet:extra=/srv/beegfs/scratch/users/p/pulfer/datasets/extra",
 
