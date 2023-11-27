@@ -6,6 +6,7 @@ notes.txt
 /results/
 /slurm/
 /src/dinov2/
+/src/mmsegmentation/
 
 # Experiment results
 *.ckpt
