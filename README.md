@@ -28,7 +28,9 @@ Clone the [DinoV2](https://github.com/facebookresearch/dinov2) and [MMSegmentati
 ```bash
 cd src/
 git clone -b main https://github.com/facebookresearch/dinov2.git
-git clone -b main https://github.com/open-mmlab/mmsegmentation.git
+git clone https://github.com/open-mmlab/mmsegmentation.git
+cd mmsegmentation
+git checkout eeeaff9
 ```
 
 
