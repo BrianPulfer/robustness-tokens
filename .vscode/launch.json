@@ -59,8 +59,8 @@
                 "--config-file", "configs/eval/classification/vitb14_reg.yaml",
                 "--pretrained-weights", "results/dinov2_vitb14_reg/last.pth",
                 "--output-dir", "results/dinov2_vitb14_reg/linear",
-                "--train-dataset", "ImageNet:split=TRAIN:root=/srv/beegfs/scratch/users/p/pulfer/datasets/imagenet:extra=/srv/beegfs/scratch/users/p/pulfer/datasets/extra",
-                "--val-dataset", "ImageNet:split=VAL:root=/srv/beegfs/scratch/users/p/pulfer/datasets/imagenet:extra=/srv/beegfs/scratch/users/p/pulfer/datasets/extra",
+                "--train-dataset", "ImageNet:split=TRAIN:root=/srv/beegfs/scratch/users/p/pulfer/datasets/IMAGENET/imagenet:extra=/srv/beegfs/scratch/users/p/pulfer/datasets/IMAGENET/extra",
+                "--val-dataset", "ImageNet:split=VAL:root=/srv/beegfs/scratch/users/p/pulfer/datasets/IMAGENET/imagenet:extra=/srv/beegfs/scratch/users/p/pulfer/datasets/IMAGENET/extra",
 
                 // Own cluster settings (to use with submitit)
                 "--partition", "private-cui-gpu",
@@ -73,6 +73,6 @@
                 "PYTHONPATH": "src/dinov2",
             },
             "justMyCode": true
-        },
+        }
     ]
 }
