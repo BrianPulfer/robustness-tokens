@@ -156,22 +156,22 @@ find_unused_parameters = True
 norm_cfg = dict(type="SyncBN", requires_grad=True)
 model = dict(
     type="EncoderDecoder",
-    pretrained="/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/src/dinov2/results/dinov2_vits14/last.pth",
+    pretrained="/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/src/dinov2/results/dinov2_vitg14_reg/last.pth",
     backbone=dict(
         type="DinoVisionTransformer",
-        out_indices=[8, 9, 10, 11],
-        embed_dim=384,
-        depth=12,
-        num_heads=6,
+        out_indices=[36, 37, 38, 39],
+        embed_dim=1536,
+        depth=40,
+        num_heads=24,
         mlp_ratio=4,
-        num_register_tokens=10,
+        num_register_tokens=14,
     ),
     decode_head=dict(
         type="BNHead",
-        in_channels=[384],
+        in_channels=[1536],
         in_index=[3],
         input_transform="resize_concat",
-        channels=384,
+        channels=1536,
         dropout_ratio=0,
         num_classes=150,
         norm_cfg=dict(type="SyncBN", requires_grad=True),
@@ -182,4 +182,4 @@ model = dict(
 )
 auto_resume = True
 gpu_ids = range(0, 8)
-work_dir = "/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/results/dinov2_vits14/segmentation"
+work_dir = "/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/results/dinov2_vitg14/segmentation"

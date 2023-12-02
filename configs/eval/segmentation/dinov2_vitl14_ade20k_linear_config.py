@@ -156,8 +156,16 @@ find_unused_parameters = True
 norm_cfg = dict(type="SyncBN", requires_grad=True)
 model = dict(
     type="EncoderDecoder",
-    pretrained=None,
-    backbone=dict(type="DinoVisionTransformer", out_indices=[20, 21, 22, 23]),
+    pretrained="/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/src/dinov2/results/dinov2_vitl14/last.pth",
+    backbone=dict(
+        type="DinoVisionTransformer",
+        out_indices=[20, 21, 22, 23],
+        embed_dim=1024,
+        depth=24,
+        num_heads=16,
+        mlp_ratio=4,
+        num_register_tokens=10,
+    ),
     decode_head=dict(
         type="BNHead",
         in_channels=[1024],
