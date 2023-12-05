@@ -73,6 +73,20 @@
                 "PYTHONPATH": "src/dinov2",
             },
             "justMyCode": true
-        }
+        },
+        {
+            "name": "Eval segmentation",
+            "type": "python",
+            "request": "launch",
+            "program": "src/mmsegmentation/tools/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "configs/eval/segmentation/dinov2_vits14_ade20k_linear_config.py"
+            ],
+            "env": {
+                "PYTHONPATH": "src"
+            },
+            "justMyCode": true
+        },
     ]
 }
