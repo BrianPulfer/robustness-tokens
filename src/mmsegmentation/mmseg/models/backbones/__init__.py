@@ -21,6 +21,8 @@ from .twins import PCPVT, SVT
 from .unet import UNet
 from .vit import VisionTransformer
 
+from .vision_transformer import DinoVisionTransformer # added by us
+
 __all__ = [
     "ResNet",
     "ResNetV1c",
@@ -47,4 +49,6 @@ __all__ = [
     "STDCContextPathNet",
     "BEiT",
     "MAE",
+
+    "DinoVisionTransformer" # added by us
 ]

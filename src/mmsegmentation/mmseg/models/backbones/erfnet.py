@@ -256,22 +256,34 @@ class ERFNet(BaseModule):
         init_cfg=None,
     ):
         super(ERFNet, self).__init__(init_cfg=init_cfg)
-        assert len(enc_downsample_channels) == len(dec_upsample_channels) + 1, "Number of downsample\
+        assert (
+            len(enc_downsample_channels) == len(dec_upsample_channels) + 1
+        ), "Number of downsample\
                      block of encoder does not \
                     match number of upsample block of decoder!"
-        assert len(enc_downsample_channels) == len(enc_stage_non_bottlenecks) + 1, "Number of \
+        assert (
+            len(enc_downsample_channels) == len(enc_stage_non_bottlenecks) + 1
+        ), "Number of \
                     downsample block of encoder does not match \
                     number of Non-bottleneck block of encoder!"
-        assert len(enc_downsample_channels) == len(enc_non_bottleneck_channels) + 1, "Number of \
+        assert (
+            len(enc_downsample_channels) == len(enc_non_bottleneck_channels) + 1
+        ), "Number of \
                     downsample block of encoder does not match \
                     number of channels of Non-bottleneck block of encoder!"
-        assert enc_stage_non_bottlenecks[-1] % len(enc_non_bottleneck_dilations) == 0, "Number of \
+        assert (
+            enc_stage_non_bottlenecks[-1] % len(enc_non_bottleneck_dilations) == 0
+        ), "Number of \
                     Non-bottleneck block of encoder does not match \
                     number of Non-bottleneck block of encoder!"
-        assert len(dec_upsample_channels) == len(dec_stages_non_bottleneck), "Number of \
+        assert len(dec_upsample_channels) == len(
+            dec_stages_non_bottleneck
+        ), "Number of \
                 upsample block of decoder does not match \
                 number of Non-bottleneck block of decoder!"
-        assert len(dec_stages_non_bottleneck) == len(dec_non_bottleneck_channels), "Number of \
+        assert len(dec_stages_non_bottleneck) == len(
+            dec_non_bottleneck_channels
+        ), "Number of \
                 Non-bottleneck block of decoder does not match \
                 number of channels of Non-bottleneck block of decoder!"
 

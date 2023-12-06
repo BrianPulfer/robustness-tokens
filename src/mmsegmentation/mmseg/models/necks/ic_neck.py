@@ -116,7 +116,9 @@ class ICNeck(BaseModule):
         init_cfg=None,
     ):
         super(ICNeck, self).__init__(init_cfg=init_cfg)
-        assert len(in_channels) == 3, "Length of input channels \
+        assert (
+            len(in_channels) == 3
+        ), "Length of input channels \
                                         must be 3!"
 
         self.in_channels = in_channels
@@ -146,7 +148,9 @@ class ICNeck(BaseModule):
         )
 
     def forward(self, inputs):
-        assert len(inputs) == 3, "Length of input feature \
+        assert (
+            len(inputs) == 3
+        ), "Length of input feature \
                                         maps must be 3!"
 
         x_sub1, x_sub2, x_sub4 = inputs

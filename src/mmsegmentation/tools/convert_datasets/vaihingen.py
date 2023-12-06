@@ -176,7 +176,9 @@ def main():
                 src_path_list = glob.glob(
                     os.path.join(os.path.join(tmp_dir, "top"), "*.tif")
                 )
-            if "ISPRS_semantic_labeling_Vaihingen_ground_truth_eroded_COMPLETE" in zipp:  # noqa
+            if (
+                "ISPRS_semantic_labeling_Vaihingen_ground_truth_eroded_COMPLETE" in zipp
+            ):  # noqa
                 src_path_list = glob.glob(os.path.join(tmp_dir, "*.tif"))
                 # delete unused area9 ground truth
                 for area_ann in src_path_list:

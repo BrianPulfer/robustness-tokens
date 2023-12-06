@@ -29,6 +29,8 @@ from .setr_up_head import SETRUPHead
 from .stdc_head import STDCHead
 from .uper_head import UPerHead
 
+from .linear_head import BNHead # Added by us
+
 __all__ = [
     "FCNHead",
     "PSPHead",
@@ -62,4 +64,5 @@ __all__ = [
     "IterativeDecodeHead",
     "KernelUpdateHead",
     "KernelUpdator",
+    "BNHead"  # Added by us
 ]

@@ -32,7 +32,9 @@ class SpatialPath(BaseModule):
         init_cfg=None,
     ):
         super(SpatialPath, self).__init__(init_cfg=init_cfg)
-        assert len(num_channels) == 4, "Length of input channels \
+        assert (
+            len(num_channels) == 4
+        ), "Length of input channels \
                                         of Spatial Path must be 4!"
 
         self.layers = []
@@ -169,7 +171,9 @@ class ContextPath(BaseModule):
         init_cfg=None,
     ):
         super(ContextPath, self).__init__(init_cfg=init_cfg)
-        assert len(context_channels) == 3, "Length of input channels \
+        assert (
+            len(context_channels) == 3
+        ), "Length of input channels \
                                            of Context Path must be 3!"
 
         self.backbone = build_backbone(backbone_cfg)
@@ -330,10 +334,14 @@ class BiSeNetV1(BaseModule):
         init_cfg=None,
     ):
         super(BiSeNetV1, self).__init__(init_cfg=init_cfg)
-        assert len(spatial_channels) == 4, "Length of input channels \
+        assert (
+            len(spatial_channels) == 4
+        ), "Length of input channels \
                                            of Spatial Path must be 4!"
 
-        assert len(context_channels) == 3, "Length of input channels \
+        assert (
+            len(context_channels) == 3
+        ), "Length of input channels \
                                            of Context Path must be 3!"
 
         self.out_indices = out_indices

@@ -104,7 +104,9 @@ class JPU(BaseModule):
 
     def forward(self, inputs):
         """Forward function."""
-        assert len(inputs) == len(self.in_channels), "Length of inputs must \
+        assert len(inputs) == len(
+            self.in_channels
+        ), "Length of inputs must \
                                            be the same with self.in_channels!"
 
         feats = [
