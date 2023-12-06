@@ -30,7 +30,7 @@ cd src/
 git clone -b main https://github.com/facebookresearch/dinov2.git
 git clone https://github.com/open-mmlab/mmsegmentation.git
 cd mmsegmentation
-git checkout eeeaff9
+git checkout v0.27.0
 ```
 
 
