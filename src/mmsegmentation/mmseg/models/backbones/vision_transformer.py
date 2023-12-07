@@ -84,7 +84,7 @@ class DinoVisionTransformer(BaseModule):
         interpolate_antialias=False,
         interpolate_offset=0.1,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -115,6 +115,7 @@ class DinoVisionTransformer(BaseModule):
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
 
         self.out_indices = kwargs.get("out_indices")
+        self.pretrained = kwargs.get("pretrained")
 
         self.num_features = (
             self.embed_dim
@@ -205,13 +206,18 @@ class DinoVisionTransformer(BaseModule):
         self.mask_token = nn.Parameter(torch.zeros(1, embed_dim))
 
         self.init_weights()
+        self.requires_grad_(False)
 
     def init_weights(self):
-        trunc_normal_(self.pos_embed, std=0.02)
-        nn.init.normal_(self.cls_token, std=1e-6)
-        if self.register_tokens is not None:
-            nn.init.normal_(self.register_tokens, std=1e-6)
-        named_apply(init_weights_vit_timm, self)
+        if self.pretrained is not None:
+            sd = torch.load(self.pretrained, map_location="cpu")
+            self.load_state_dict(sd, strict=True)
+        else:
+            trunc_normal_(self.pos_embed, std=0.02)
+            nn.init.normal_(self.cls_token, std=1e-6)
+            if self.register_tokens is not None:
+                nn.init.normal_(self.register_tokens, std=1e-6)
+            named_apply(init_weights_vit_timm, self)
 
     def interpolate_pos_encoding(self, x, w, h):
         previous_dtype = x.dtype
@@ -357,16 +363,14 @@ class DinoVisionTransformer(BaseModule):
             outputs = self._get_intermediate_layers_chunked(x, n)
         else:
             outputs = self._get_intermediate_layers_not_chunked(x, n)
+
         if norm:
             outputs = [self.norm(out) for out in outputs]
         class_tokens = [out[:, 0] for out in outputs]
         outputs = [out[:, 1:] for out in outputs]
 
         if self.register_tokens is not None:
-            outputs = [
-                out[:, self.num_register_tokens:]
-                for out in outputs
-            ]
+            outputs = [out[:, self.num_register_tokens :] for out in outputs]
 
         if reshape:
             B, _, w, h = x.shape
@@ -386,7 +390,13 @@ class DinoVisionTransformer(BaseModule):
             return ret
         else:
             return self.head(ret["x_norm_clstoken"])"""
-        return self.get_intermediate_layers(args[0], n=self.out_indices, reshape=True, return_class_token=False)
+        return self.get_intermediate_layers(
+            args[0],
+            n=self.out_indices,
+            reshape=True,
+            return_class_token=False,
+            norm=False,
+        )
 
 
 def init_weights_vit_timm(module: nn.Module, name: str = ""):
