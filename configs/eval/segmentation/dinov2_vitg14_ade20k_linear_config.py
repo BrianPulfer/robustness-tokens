@@ -167,7 +167,7 @@ model = dict(
         embed_dim=1536,
         depth=40,
         num_heads=24,
-        mlp_ratio=4,
+        ffn_layer="swiglufused",
         num_register_tokens=10,
     ),
     decode_head=dict(

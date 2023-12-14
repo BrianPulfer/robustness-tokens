@@ -3,6 +3,7 @@ data_root = "/srv/beegfs/scratch/users/p/pulfer/datasets/ADE20K/ADEChallengeData
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True
 )
+# crop_size = (518, 518)
 crop_size = (518, 518)
 train_pipeline = [
     dict(type="LoadImageFromFile"),
@@ -156,26 +157,26 @@ find_unused_parameters = True
 norm_cfg = dict(type="SyncBN", requires_grad=True)
 model = dict(
     type="EncoderDecoder",
-    pretrained="/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/results/dinov2_vitg14_reg/last.pth",
+    pretrained="/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/src/dinov2/weights/dinov2_vits14_pretrain.pth",
     backbone=dict(
         type="DinoVisionTransformer",
-        out_indices=[36, 37, 38, 39],
+        out_indices=[8, 9, 10, 11],
         img_size=518,
-        block_chunks=0,
-        init_values=1,
         patch_size=14,
-        embed_dim=1536,
-        depth=40,
-        num_heads=24,
-        ffn_layer="swiglufused",
-        num_register_tokens=14,
+        embed_dim=384,
+        depth=12,
+        block_chunks=0,
+        num_heads=6,
+        mlp_ratio=4,
+        init_values=1,
+        # num_register_tokens=10,
     ),
     decode_head=dict(
         type="BNHead",
-        in_channels=[1536],
+        in_channels=[384],
         in_index=[3],
         input_transform="resize_concat",
-        channels=1536,
+        channels=384,
         dropout_ratio=0,
         num_classes=150,
         norm_cfg=dict(type="SyncBN", requires_grad=True),
@@ -186,4 +187,4 @@ model = dict(
 )
 auto_resume = True
 gpu_ids = range(0, 8)
-work_dir = "/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/results/dinov2_vitg14_reg/segmentation"
+work_dir = "/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/results/dinov2_vits14/segmentation/without_rtokens"

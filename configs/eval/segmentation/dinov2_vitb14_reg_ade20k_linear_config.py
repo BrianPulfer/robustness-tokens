@@ -186,4 +186,4 @@ model = dict(
 )
 auto_resume = True
 gpu_ids = range(0, 8)
-work_dir = "/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/results/dinov2_vitb14/segmentation"
+work_dir = "/srv/beegfs/scratch/users/p/pulfer/robustness_tokens/results/dinov2_vitb14_reg/segmentation"
