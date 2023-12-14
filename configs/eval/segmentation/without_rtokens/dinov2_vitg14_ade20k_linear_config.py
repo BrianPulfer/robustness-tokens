@@ -3,12 +3,12 @@ data_root = "/srv/beegfs/scratch/users/p/pulfer/datasets/ADE20K/ADEChallengeData
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True
 )
-crop_size = (512, 512)
+crop_size = (518, 518)
 train_pipeline = [
     dict(type="LoadImageFromFile"),
     dict(type="LoadAnnotations", reduce_zero_label=True),
-    dict(type="Resize", img_scale=(99999999, 512), ratio_range=(0.5, 2.0)),
-    dict(type="RandomCrop", crop_size=(512, 512), cat_max_ratio=0.75),
+    dict(type="Resize", img_scale=(99999999, 518), ratio_range=(0.5, 2.0)),
+    dict(type="RandomCrop", crop_size=(518, 518), cat_max_ratio=0.75),
     dict(type="RandomFlip", prob=0.5),
     dict(type="PhotoMetricDistortion"),
     dict(
@@ -17,7 +17,7 @@ train_pipeline = [
         std=[58.395, 57.12, 57.375],
         to_rgb=True,
     ),
-    dict(type="Pad", size=(512, 512), pad_val=0, seg_pad_val=255),
+    dict(type="Pad", size=(518, 518), pad_val=0, seg_pad_val=255),
     dict(type="DefaultFormatBundle"),
     dict(type="Collect", keys=["img", "gt_semantic_seg"]),
 ]
@@ -25,7 +25,7 @@ test_pipeline = [
     dict(type="LoadImageFromFile"),
     dict(
         type="MultiScaleFlipAug",
-        img_scale=(99999999, 512),
+        img_scale=(99999999, 518),
         img_ratios=1.0,
         flip=False,
         transforms=[
@@ -53,8 +53,8 @@ data = dict(
         pipeline=[
             dict(type="LoadImageFromFile"),
             dict(type="LoadAnnotations", reduce_zero_label=True),
-            dict(type="Resize", img_scale=(99999999, 512), ratio_range=(0.5, 2.0)),
-            dict(type="RandomCrop", crop_size=(512, 512), cat_max_ratio=0.75),
+            dict(type="Resize", img_scale=(99999999, 518), ratio_range=(0.5, 2.0)),
+            dict(type="RandomCrop", crop_size=(518, 518), cat_max_ratio=0.75),
             dict(type="RandomFlip", prob=0.5),
             dict(type="PhotoMetricDistortion"),
             dict(
@@ -63,7 +63,7 @@ data = dict(
                 std=[58.395, 57.12, 57.375],
                 to_rgb=True,
             ),
-            dict(type="Pad", size=(512, 512), pad_val=0, seg_pad_val=255),
+            dict(type="Pad", size=(518, 518), pad_val=0, seg_pad_val=255),
             dict(type="DefaultFormatBundle"),
             dict(type="Collect", keys=["img", "gt_semantic_seg"]),
         ],
@@ -77,7 +77,7 @@ data = dict(
             dict(type="LoadImageFromFile"),
             dict(
                 type="MultiScaleFlipAug",
-                img_scale=(99999999, 512),
+                img_scale=(99999999, 518),
                 img_ratios=1.0,
                 flip=False,
                 transforms=[
@@ -104,7 +104,7 @@ data = dict(
             dict(type="LoadImageFromFile"),
             dict(
                 type="MultiScaleFlipAug",
-                img_scale=(99999999, 512),
+                img_scale=(99999999, 518),
                 img_ratios=1.0,
                 flip=False,
                 transforms=[
@@ -182,7 +182,7 @@ model = dict(
         align_corners=False,
         loss_decode=dict(type="CrossEntropyLoss", use_sigmoid=False, loss_weight=1.0),
     ),
-    test_cfg=dict(mode="slide", crop_size=(512, 512), stride=(341, 341)),
+    test_cfg=dict(mode="slide", crop_size=(518, 518), stride=(341, 341)),
 )
 auto_resume = True
 gpu_ids = range(0, 8)
