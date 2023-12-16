@@ -160,11 +160,15 @@ model = dict(
     backbone=dict(
         type="DinoVisionTransformer",
         out_indices=[8, 9, 10, 11],
+        img_size=518,
+        block_chunks=0,
+        init_values=1,
+        patch_size=14,
         embed_dim=768,
         depth=12,
         num_heads=12,
         mlp_ratio=4,
-        # num_register_tokens=10,
+        # num_register_tokens=0,
     ),
     decode_head=dict(
         type="BNHead",
