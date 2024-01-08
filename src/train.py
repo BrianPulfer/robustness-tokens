@@ -104,7 +104,7 @@ def main(args):
 
     # Preparing data loaders
     loaders_fn = get_loaders_fn(args["dataset"])
-    train_loader, val_loader = loaders_fn(
+    train_loader, _ = loaders_fn(
         args["train"]["batch_size"], num_workers=args["train"]["num_workers"]
     )
 
