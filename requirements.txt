@@ -2,6 +2,7 @@ accelerate
 numpy
 pandas
 Pillow
+python-dotenv
 torch
 torchmetrics
 torchvision

@@ -27,7 +27,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--config",
-                "configs/eval/robustness.yaml"
+                "configs/eval/robustness/default.yaml"
             ],
             "env": {
                 "PYTHONPATH": "src"

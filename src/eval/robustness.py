@@ -1,5 +1,6 @@
 import os
-
+import random
+import numpy as np
 import pandas as pd
 import torch
 from accelerate import Accelerator
@@ -38,11 +39,18 @@ def evaluate_robustness(surrogate, victim, loader, attack_fn, accelerator):
             f2 = victim(batch_adv)
             cossims.extend(cossim(f1, f2))
             mses.extend(mse(f1, f2))
+            print(f"Cosine Sim: {np.mean(cossims):.3f}  - MSE: {np.mean(mses):.3f}")
 
     return {"Cosine Sim": cossims}, {"MSEs": mses}
 
 
 def main(args):
+    # Setting seed
+    random.seed(args["seed"])
+    np.random.seed(args["seed"])
+    torch.manual_seed(args["seed"])
+    torch.cuda.manual_seed_all(args["seed"])
+
     # Accelerator
     accelerator = Accelerator()
 
@@ -52,16 +60,16 @@ def main(args):
 
     # Surrogate
     surrogate = get_model(**args["surrogate"])
-    if args["surrogate"].get("state_dict", None) is not None:
+    if args.get("surrogate_state_dict", None) is not None:
         surrogate.load_state_dict(
-            torch.load(args["surrogate"]["state_dict"], map_location=accelerator.device)
+            torch.load(args["surrogate_state_dict"], map_location=accelerator.device)
         )
 
     # Victim
     victim = get_model(**args["victim"])
-    if args["victim"].get("state_dict", None) is not None:
+    if args.get("victim_state_dict", None) is not None:
         victim.load_state_dict(
-            torch.load(args["victim"]["state_dict"], map_location=accelerator.device)
+            torch.load(args["victim_state_dict"], map_location=accelerator.device)
         )
 
     # Moving to device
