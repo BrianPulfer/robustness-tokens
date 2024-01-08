@@ -17,9 +17,8 @@ def evaluate_robustness(surrogate, victim, loader, attack_fn, accelerator):
     # Preparing accelerator
     surrogate, victim, loader = accelerator.prepare(surrogate, victim, loader)
 
-    modes = ["Robust", "Standard"]
-    cossims = {"Cossims " + m1 + "-" + m2: [] for m1 in modes for m2 in modes}
-    mses = {"MSEs " + m1 + "-" + m2: [] for m1 in modes for m2 in modes}
+    cossims = []
+    mses = []
 
     def cossim(f1, f2):
         out = cosine_similarity(f1, f2)
@@ -32,19 +31,15 @@ def evaluate_robustness(surrogate, victim, loader, attack_fn, accelerator):
 
     for batch in tqdm(loader, desc="Evaluating robustness"):
         batch = batch[0]
-        for b1, mode1 in zip([True, False], modes):
-            surrogate.enable_robust = b1
-            batch_adv = attack_fn(surrogate, batch)
+        batch_adv = attack_fn(surrogate, batch)
 
-            with torch.no_grad():
-                for b2, mode2 in zip([True, False], modes):
-                    victim.enable_robust = b2
-                    f1 = victim(batch)
-                    f2 = victim(batch_adv)
-                    cossims["Cossims " + mode1 + "-" + mode2].extend(cossim(f1, f2))
-                    mses["MSEs " + mode1 + "-" + mode2].extend(mse(f1, f2))
+        with torch.no_grad():
+            f1 = victim(batch)
+            f2 = victim(batch_adv)
+            cossims.extend(cossim(f1, f2))
+            mses.extend(mse(f1, f2))
 
-    return cossims, mses
+    return {"Cosine Sim": cossims}, {"MSEs": mses}
 
 
 def main(args):
