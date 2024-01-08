@@ -12,10 +12,10 @@ from models.utils import get_model
 from utils import read_config
 
 
-def evaluate_robustness(model, loader, attack_fn, accelerator):
+def evaluate_robustness(surrogate, victim, loader, attack_fn, accelerator):
     """Test loop that evaluates robustness of the model compared to the baseline."""
     # Preparing accelerator
-    model, loader = accelerator.prepare(model, loader)
+    surrogate, victim, loader = accelerator.prepare(surrogate, victim, loader)
 
     modes = ["Robust", "Standard"]
     cossims = {"Cossims " + m1 + "-" + m2: [] for m1 in modes for m2 in modes}
@@ -33,14 +33,14 @@ def evaluate_robustness(model, loader, attack_fn, accelerator):
     for batch in tqdm(loader, desc="Evaluating robustness"):
         batch = batch[0]
         for b1, mode1 in zip([True, False], modes):
-            model.enable_robust = b1
-            batch_adv = attack_fn(model, batch)
+            surrogate.enable_robust = b1
+            batch_adv = attack_fn(surrogate, batch)
 
             with torch.no_grad():
                 for b2, mode2 in zip([True, False], modes):
-                    model.enable_robust = b2
-                    f1 = model(batch)
-                    f2 = model(batch_adv)
+                    victim.enable_robust = b2
+                    f1 = victim(batch)
+                    f2 = victim(batch_adv)
                     cossims["Cossims " + mode1 + "-" + mode2].extend(cossim(f1, f2))
                     mses["MSEs " + mode1 + "-" + mode2].extend(mse(f1, f2))
 
@@ -55,19 +55,27 @@ def main(args):
     loaders_fn = get_loaders_fn(args["dataset"])
     _, val_loader = loaders_fn(args["batch_size"], args["num_workers"])
 
-    # Model
-    model = get_model(**args["model"])
-    model, val_loader = accelerator.prepare(model, val_loader)
+    # Surrogate
+    surrogate = get_model(**args["surrogate"])
+    if args["surrogate"].get("state_dict", None) is not None:
+        surrogate.load_state_dict(
+            torch.load(args["surrogate"]["state_dict"], map_location=accelerator.device)
+        )
 
-    model.load_state_dict(
-        torch.load(args["state_dict"], map_location=accelerator.device)
-    )
+    # Victim
+    victim = get_model(**args["victim"])
+    if args["victim"].get("state_dict", None) is not None:
+        victim.load_state_dict(
+            torch.load(args["victim"]["state_dict"], map_location=accelerator.device)
+        )
 
-    attack_fn = get_attack(model, **args["attack"])
+    # Moving to device
+    attack_fn = get_attack(**args["attack"])
 
     # Attacking "robust" model
-    accelerator = Accelerator()
-    cossims, mses = evaluate_robustness(model, val_loader, attack_fn, accelerator)
+    cossims, mses = evaluate_robustness(
+        surrogate, victim, val_loader, attack_fn, accelerator
+    )
 
     # Saving metrics
     rdir = args["results_dir"]

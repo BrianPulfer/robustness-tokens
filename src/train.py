@@ -39,20 +39,21 @@ def train_rtokens(
         while steps < max_steps:
             for batch in loader:
                 batch = batch[0]
-                batch_adv = attack_fn(model, batch)
-                with torch.no_grad():
-                    target = model(batch, enable_robust=False)
-                    mse = mse_loss(unnormalize(batch_adv), unnormalize(batch))
-                    baseline = (
-                        criterion(model(batch_adv, enable_robust=False), target)
-                        .mean()
-                        .item()
-                    )
 
-                loss_inv = criterion(model(batch, enable_robust=True), target).mean()
-                loss_adv = criterion(
-                    model(batch_adv, enable_robust=True), target
-                ).mean()
+                # Getting adversarial batch w.r.t. standard model
+                model.enable_robust = False
+                batch_adv = attack_fn(model, batch)
+
+                # Getting target features and loss w.r.t. standard model
+                with torch.no_grad():
+                    target = model(batch)
+                    mse = mse_loss(unnormalize(batch_adv), unnormalize(batch))
+                    baseline = criterion(model(batch_adv), target).mean().item()
+
+                # Training robustness tokens
+                model.enable_robust = True
+                loss_inv = criterion(model(batch), target).mean()
+                loss_adv = criterion(model(batch_adv), target).mean()
                 loss = loss_inv + loss_adv
                 optim.zero_grad()
                 accelerator.backward(loss)
@@ -100,7 +101,7 @@ def main(args):
     model = get_model(**args["model"])
 
     # Defining attack function
-    attack_fn = get_attack(model, **args["attack"])
+    attack_fn = get_attack(**args["attack"])
 
     # Preparing data loaders
     loaders_fn = get_loaders_fn(args["dataset"])
