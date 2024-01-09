@@ -82,6 +82,7 @@ def main(args):
 
     # Saving metrics
     rdir = args["results_dir"]
+    os.makedirs(rdir, exist_ok=True)
     cossims = pd.DataFrame.from_dict(cossims)
     mses = pd.DataFrame.from_dict(mses)
     cossims.to_csv(os.path.join(rdir, "cossims.csv"))
