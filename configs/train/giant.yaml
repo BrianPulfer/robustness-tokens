@@ -1,16 +1,10 @@
-attack:
-  eps: 0.0314
-  lr: 0.01
-  max_mse: 0.0001
-  name: pgd
-  steps: 30
 dataset: imagenet
 model:
   enbable_robust: true
   n_rtokens: 10
-  name: dinov2_vitb14_reg
-results_dir: results/default
-run_name: dinov2_vitb14_reg - train robustness
+  name: dinov2_vitg14
+results_dir: results/dinov2_vitg14
+run_name: dinov2_vitg14 - train robustness
 seed: 0
 train:
   batch_size: 8

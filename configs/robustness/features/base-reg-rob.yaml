@@ -1,13 +1,7 @@
-attack:
-  eps: 0.0314
-  lr: 0.01
-  max_mse: 0.0001
-  name: pgd
-  steps: 30
 batch_size: 32
 dataset: imagenet
 num_workers: 8
-results_dir: results/dinov2_vitb14_reg/robustness
+results_dir: results/robustness/features/base-reg-rob
 seed: 0
 surrogate:
   enbable_robust: true

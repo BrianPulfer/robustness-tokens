@@ -1,0 +1,15 @@
+batch_size: 32
+dataset: imagenet
+num_workers: 8
+results_dir: results/robustness/features/giant-rob
+seed: 0
+surrogate:
+  enbable_robust: true
+  n_rtokens: 10
+  name: dinov2_vitg14
+surrogate_state_dict: results/dinov2_vitg14/last.ckpt
+victim:
+  enbable_robust: true
+  n_rtokens: 10
+  name: dinov2_vitg14
+victim_state_dict: results/dinov2_vitg14/last.ckpt

@@ -1,0 +1,21 @@
+batch_size: 32
+dataset: imagenet
+num_workers: 8
+results_dir: results/robustness/class/giant-reg
+seed: 0
+surrogate:
+  backbone_kwargs:
+    enbable_robust: false
+    n_rtokens: 0
+    name: dinov2_vitg14_reg
+  backbone_path: NOPATH
+  head_path: results/dinov2_vitg14_reg/linear/model_final.pth
+  head_classifier_name: classifier_1_blocks_avgpool_True_lr_0_02500
+victim:
+  backbone_kwargs:
+    enbable_robust: false
+    n_rtokens: 0
+    name: dinov2_vitg14_reg
+  backbone_path: NOPATH
+  head_path: results/dinov2_vitg14_reg/linear/model_final.pth
+  head_classifier_name: classifier_1_blocks_avgpool_True_lr_0_02500

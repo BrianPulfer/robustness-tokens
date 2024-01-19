@@ -1,0 +1,13 @@
+batch_size: 32
+dataset: imagenet
+num_workers: 8
+results_dir: results/robustness/features/small
+seed: 0
+surrogate:
+  enbable_robust: false
+  n_rtokens: 0
+  name: dinov2_vits14
+victim:
+  enbable_robust: false
+  n_rtokens: 0
+  name: dinov2_vits14

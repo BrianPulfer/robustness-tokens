@@ -7,13 +7,13 @@ from accelerate import Accelerator
 from torch.nn.functional import cosine_similarity
 from tqdm.auto import tqdm
 
-from attacks.utils import get_attack
+from attacks.pgd import pgd_attack
 from data.utils import get_loaders_fn
 from models.utils import get_model
 from utils import read_config
 
 
-def evaluate_robustness(surrogate, victim, loader, attack_fn, accelerator):
+def evaluate_robustness(surrogate, victim, loader, accelerator):
     """Test loop that evaluates robustness of the model compared to the baseline."""
     # Preparing accelerator
     surrogate, victim, loader = accelerator.prepare(surrogate, victim, loader)
@@ -32,7 +32,7 @@ def evaluate_robustness(surrogate, victim, loader, attack_fn, accelerator):
 
     for batch in tqdm(loader, desc="Evaluating robustness"):
         batch = batch[0]
-        batch_adv = attack_fn(surrogate, batch)
+        batch_adv = pgd_attack(surrogate, batch)
 
         with torch.no_grad():
             f1 = victim(batch)
@@ -72,13 +72,8 @@ def main(args):
             torch.load(args["victim_state_dict"], map_location=accelerator.device)
         )
 
-    # Moving to device
-    attack_fn = get_attack(**args["attack"])
-
-    # Attacking "robust" model
-    cossims, mses = evaluate_robustness(
-        surrogate, victim, val_loader, attack_fn, accelerator
-    )
+    # Attacking model
+    cossims, mses = evaluate_robustness(surrogate, victim, val_loader, accelerator)
 
     # Saving metrics
     rdir = args["results_dir"]

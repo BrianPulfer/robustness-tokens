@@ -1,0 +1,21 @@
+batch_size: 32
+dataset: imagenet
+num_workers: 8
+results_dir: results/robustness/class/small-reg-rob
+seed: 0
+surrogate:
+  backbone_kwargs:
+    enbable_robust: true
+    n_rtokens: 10
+    name: dinov2_vits14_reg
+  backbone_path: results/dinov2_vits14_reg/last.ckpt
+  head_path: results/dinov2_vits14_reg/linear/model_final.pth
+  head_classifier_name: classifier_1_blocks_avgpool_True_lr_0_05000
+victim:
+  backbone_kwargs:
+    enbable_robust: true
+    n_rtokens: 10
+    name: dinov2_vits14_reg
+  backbone_path: results/dinov2_vits14_reg/last.ckpt
+  head_path: results/dinov2_vits14_reg/linear/model_final.pth
+  head_classifier_name: classifier_1_blocks_avgpool_True_lr_0_05000

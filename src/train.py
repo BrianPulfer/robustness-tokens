@@ -9,7 +9,7 @@ from torch.nn.functional import mse_loss
 from tqdm.auto import tqdm
 
 import wandb
-from attacks.utils import get_attack
+from attacks.pgd import pgd_attack
 from data.transforms import unnormalize
 from data.utils import get_loaders_fn
 from models.utils import get_model
@@ -20,7 +20,6 @@ def train_rtokens(
     model,
     loader,
     criterion,
-    attack_fn,
     optim,
     accelerator,
     max_steps,
@@ -42,7 +41,7 @@ def train_rtokens(
 
                 # Getting adversarial batch w.r.t. standard model
                 model.enable_robust = False
-                batch_adv = attack_fn(model, batch)
+                batch_adv = pgd_attack(model, batch)
 
                 # Getting target features and loss w.r.t. standard model
                 with torch.no_grad():
@@ -100,9 +99,6 @@ def main(args):
     # Initializing model
     model = get_model(**args["model"])
 
-    # Defining attack function
-    attack_fn = get_attack(**args["attack"])
-
     # Preparing data loaders
     loaders_fn = get_loaders_fn(args["dataset"])
     train_loader, _ = loaders_fn(
@@ -126,7 +122,6 @@ def main(args):
         model,
         train_loader,
         criterion,
-        attack_fn,
         optim,
         accelerator,
         max_steps,

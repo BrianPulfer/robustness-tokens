@@ -5,14 +5,25 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "src"
+            },
+        },
+        {
             "name": "Train robustness",
             "type": "python",
             "request": "launch",
-            "program": "src/train/robustness.py",
+            "program": "src/train.py",
             "console": "integratedTerminal",
             "args": [
                 "--config",
-                "configs/train/robustness.yaml"
+                "configs/train/default.yaml"
             ],
             "env": {
                 "PYTHONPATH": "src"
@@ -20,14 +31,44 @@
             "justMyCode": true
         },
         {
-            "name": "Eval robustness",
+            "name": "Robustness Features",
             "type": "python",
             "request": "launch",
-            "program": "src/eval/robustness.py",
+            "program": "src/robustness/feat.py",
             "console": "integratedTerminal",
             "args": [
                 "--config",
-                "configs/eval/robustness/default.yaml"
+                "configs/robustness/features/small.yaml"
+            ],
+            "env": {
+                "PYTHONPATH": "src"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "Robustness Classification",
+            "type": "python",
+            "request": "launch",
+            "program": "src/robustness/class.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "configs/robustness/classification/small.yaml"
+            ],
+            "env": {
+                "PYTHONPATH": "src"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "Robustness Segmentation",
+            "type": "python",
+            "request": "launch",
+            "program": "src/robustness/seg.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "configs/robustness/segmentation/small.yaml"
             ],
             "env": {
                 "PYTHONPATH": "src"
@@ -41,8 +82,8 @@
             "program": "src/convert.py",
             "console": "integratedTerminal",
             "args": [
-                "--checkpoint", "results/dinov2_vitb14/last.ckpt",
-                "--output", "results/dinov2_vitb14/last.pth"
+                "--checkpoint", "results/dinov2_vits14/last.ckpt",
+                "--output", "results/dinov2_vits14/last.pth"
             ],
             "env": {
                 "PYTHONPATH": "src"
@@ -56,9 +97,9 @@
             "program": "src/dinov2/dinov2/run/eval/linear.py",
             "console": "integratedTerminal",
             "args": [
-                "--config-file", "configs/eval/classification/vitb14_reg.yaml",
-                "--pretrained-weights", "results/dinov2_vitb14_reg/last.pth",
-                "--output-dir", "results/dinov2_vitb14_reg/linear",
+                "--config-file", "configs/eval/classification/vits14_reg.yaml",
+                "--pretrained-weights", "results/dinov2_vits14_reg/last.pth",
+                "--output-dir", "results/dinov2_vits14_reg/linear",
                 "--train-dataset", "ImageNet:split=TRAIN:root=/srv/beegfs/scratch/users/p/pulfer/datasets/IMAGENET/imagenet:extra=/srv/beegfs/scratch/users/p/pulfer/datasets/IMAGENET/extra",
                 "--val-dataset", "ImageNet:split=VAL:root=/srv/beegfs/scratch/users/p/pulfer/datasets/IMAGENET/imagenet:extra=/srv/beegfs/scratch/users/p/pulfer/datasets/IMAGENET/extra",
 

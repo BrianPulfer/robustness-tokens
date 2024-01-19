@@ -1,6 +1,7 @@
 import torch
-from torch.nn.functional import cosine_similarity, mse_loss
-from data.transforms import normalize, to_pil, to_tensor, unnormalize
+from torch.nn.functional import cosine_similarity, cross_entropy, mse_loss
+
+from data.transforms import to_tensor, to_pil, normalize, unnormalize
 
 
 def validate(batch):
@@ -11,23 +12,35 @@ def validate(batch):
 
 
 def pgd_attack(
-    model, batch, steps=30, lr=1e-2, max_mse=1e-4, eps=8 / 255, verbose=False
+    model,
+    batch,
+    target=None,
+    steps=30,
+    lr=1e-2,
+    max_mse=1e-4,
+    eps=8 / 255,
+    verbose=False,
 ):
     model.eval()
-    with torch.no_grad():
-        target = model(batch).detach()
-        img_target = unnormalize(batch).detach()
+    img = unnormalize(batch).detach()
+
+    on_features = target is None
+    objective = cosine_similarity if on_features else lambda x, y: -cross_entropy(x, y)
+
+    if on_features:
+        with torch.no_grad():
+            target = model(batch).detach()
 
     lower, upper = batch.min(), batch.max()
     batch_adv = (batch + lr * torch.randn_like(batch)).detach().clone()
     batch_adv.requires_grad = True
     for step in range(steps):
-        # Minimize cosine similarity an MSE
+        # Minimize cosine similarity and MSE
         pred = model(batch_adv)
-        img_pred = unnormalize(batch_adv)
+        img_adv = unnormalize(batch_adv)
 
-        f_loss = cosine_similarity(pred, target).mean()
-        i_loss = mse_loss(img_pred, img_target).mean()
+        f_loss = objective(pred, target).mean()
+        i_loss = mse_loss(img_adv, img).mean()
         loss = f_loss + i_loss
 
         loss.backward()
@@ -54,3 +67,27 @@ def pgd_attack(
     # Getting valid image tensors
     batch_adv = validate(batch_adv)
     return batch_adv.clone().detach()
+
+
+if __name__ == "__main__":
+    from data.utils import get_loaders_fn
+
+    device = "cuda"
+    model = (
+        torch.hub.load("facebookresearch/dinov2", "dinov2_vits14_lc").to(device).eval()
+    )
+
+    loader, _ = get_loaders_fn("imagenet")(batch_size=16)
+
+    for batch in loader:
+        x, y = batch
+        x, y = x.to(device), y.to(device)
+        x_adv = pgd_attack(model, x, y)
+
+        with torch.no_grad():
+            y_hat = model(x.to(device))
+            y_hat_adv = model(x_adv.to(device))
+
+            print(f"Accuracy: {(y_hat.argmax(dim=-1) == y).float().mean()}.")
+            print(f"Accuracy adv: {(y_hat_adv.argmax(dim=-1) == y).float().mean()}.")
+        break

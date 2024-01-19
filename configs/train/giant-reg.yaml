@@ -1,0 +1,17 @@
+dataset: imagenet
+model:
+  enbable_robust: true
+  n_rtokens: 10
+  name: dinov2_vitg14_reg
+results_dir: results/dinov2_vitg14_reg
+run_name: dinov2_vitg14_reg - train robustness
+seed: 0
+train:
+  batch_size: 8
+  checkpoint_freq: 50
+  criterion: CosineSimilarity
+  lr: 0.001
+  max_steps: 50
+  mode: max
+  num_workers: 16
+  optimizer: Adam
