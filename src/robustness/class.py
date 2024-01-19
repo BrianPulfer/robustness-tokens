@@ -62,9 +62,9 @@ def evaluate_robustness_classification(surrogate, victim, loader, accelerator):
         with torch.no_grad():
             pred = victim(batch)
             pred_adv = victim(batch_adv)
-            acc.extend((pred_adv.argmax(dim=-1) == labels).cpu().numpy())
+            acc.extend((pred_adv.argmax(dim=-1) == labels).cpu().float().numpy())
             flipped.extend(
-                (pred.argmax(dim=-1) != pred_adv.argmax(dim=-1)).cpu().numpy()
+                (pred.argmax(dim=-1) != pred_adv.argmax(dim=-1)).cpu().float().numpy()
             )
             print(f"Accuracy: {np.mean(acc):.3f} - Flipped: {np.mean(flipped):.3f}")
 
