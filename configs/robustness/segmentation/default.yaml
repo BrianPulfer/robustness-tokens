@@ -1,8 +1,0 @@
-surrogate:
-  cfg_path: "/configs/eval/robustness/segmentation/cfgs/dinov2_vits14_reg_ade20k_linear_config.py"
-  ckpt_path: "/results/dinov2_vits14_reg/segmentation/latest.pth"
-victim:
-  cfg_path: "/configs/eval/robustness/segmentation/cfgs/dinov2_vits14_reg_ade20k_linear_config.py"
-  ckpt_path: "/results/dinov2_vits14_reg/segmentation/latest.pth"
-samples_per_gpu: 128
-result_dir: "/results/robustness_seg/small-reg-rob"
