@@ -1,6 +1,6 @@
 surrogate:
-  cfg_path: "configs/robustness/segmentation/cfgs/dinov2_vits14_ade20k_linear_config.py"
-  ckpt_path: "results/dinov2_vits14/segmentation/latest.pth"
+  cfg_path: "configs/robustness/segmentation/cfgs/dinov2_vits14_ade20k_linear_config_without_rtokens.py"
+  ckpt_path: "results/dinov2_vits14/segmentation/without_rtokens/latest.pth"
 victim:
   cfg_path: "configs/robustness/segmentation/cfgs/dinov2_vits14_ade20k_linear_config.py"
   ckpt_path: "results/dinov2_vits14/segmentation/latest.pth"

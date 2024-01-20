@@ -5,10 +5,10 @@ results_dir: results/robustness/class/base-rob
 seed: 0
 surrogate:
   backbone_kwargs:
-    enbable_robust: true
-    n_rtokens: 10
+    enbable_robust: false
+    n_rtokens: 0
     name: dinov2_vitb14
-  backbone_path: results/dinov2_vitb14/last.ckpt
+  backbone_path: NOPATH
   head_path: results/dinov2_vitb14/linear/model_final.pth
   head_classifier_name: classifier_1_blocks_avgpool_True_lr_0_01000
 victim:
