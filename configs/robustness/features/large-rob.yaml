@@ -7,7 +7,6 @@ surrogate:
   enbable_robust: false
   n_rtokens: 0
   name: dinov2_vitl14
-surrogate_state_dict: results/dinov2_vitl14/last.ckpt
 victim:
   enbable_robust: true
   n_rtokens: 10
