@@ -4,8 +4,8 @@ num_workers: 8
 results_dir: results/robustness/features/giant-reg-rob
 seed: 0
 surrogate:
-  enbable_robust: true
-  n_rtokens: 10
+  enbable_robust: false
+  n_rtokens: 0
   name: dinov2_vitg14_reg
 surrogate_state_dict: results/dinov2_vitg14_reg/last.ckpt
 victim:

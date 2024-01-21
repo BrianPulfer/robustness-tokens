@@ -4,8 +4,8 @@ num_workers: 8
 results_dir: results/robustness/features/base-rob
 seed: 0
 surrogate:
-  enbable_robust: true
-  n_rtokens: 10
+  enbable_robust: false
+  n_rtokens: 0
   name: dinov2_vitb14
 surrogate_state_dict: results/dinov2_vitb14/last.ckpt
 victim:
