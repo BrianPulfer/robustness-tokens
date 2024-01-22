@@ -4,5 +4,5 @@ surrogate:
 victim:
   cfg_path: "configs/robustness/segmentation/cfgs/dinov2_vitb14_ade20k_linear_config_without_rtokens.py"
   ckpt_path: "results/dinov2_vitb14/segmentation/without_rtokens/latest.pth"
-samples_per_gpu: 128
+samples_per_gpu: 2
 result_dir: "results/robustness/segmentation/base"
