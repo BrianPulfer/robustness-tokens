@@ -5,4 +5,4 @@ victim:
   cfg_path: "configs/robustness/segmentation/cfgs/dinov2_vitg14_ade20k_linear_config_without_rtokens.py"
   ckpt_path: "results/dinov2_vitg14/segmentation/without_rtokens/latest.pth"
 samples_per_gpu: 2
-result_dir: "results/robustness/segmentation/giant"
+results_dir: "results/robustness/segmentation/giant"

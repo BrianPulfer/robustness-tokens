@@ -14,7 +14,8 @@ from mmcv.utils import Config
 from mmcv.runner import load_checkpoint
 from mmseg.models import build_segmentor as build_segmentor_mmseg
 from mmseg.datasets import build_dataset, build_dataloader
-from mmseg.models.losses import DiceLoss
+from mmseg.core.evaluation.metrics import mean_iou
+
 
 DATA_DICT = dict(
     type="ADE20KDataset",
@@ -63,18 +64,16 @@ class SegmentorWrapper(nn.Module):
 
 
 def evaluate_robustness_segmentation(surrogate, victim, loader, device):
-    surrogate = surrogate.to(device)
-    victim = victim.to(device)
+    surrogate = surrogate.eval().to(device)
+    victim = victim.eval().to(device)
 
     ign_idx = 255
-    miou = DiceLoss(ignore_index=ign_idx).to(device)
     mious, mious_adv = [], []
-
     for batch in tqdm(loader, desc="Evaluating robustness"):
         # Unpack batch
         img = batch["img"][0].to(device)
         img_metas = batch["img_metas"]
-        gt_semantic_seg = batch["gt_semantic_seg"][0].long().to(device)
+        gt_semantic_seg = batch["gt_semantic_seg"][0].squeeze().long().to(device)
         forward_kwargs = dict(img_metas=img_metas)
 
         # Getting adversarial perturbation
@@ -87,7 +86,14 @@ def evaluate_robustness_segmentation(surrogate, victim, loader, device):
             pred = victim(img, **forward_kwargs)
             mious.extend(
                 [
-                    miou(p.unsqueeze(0), gt.unsqueeze(0)).item()
+                    np.nanmean(
+                        mean_iou(
+                            p.argmax(dim=0).cpu().numpy(),
+                            gt.cpu().numpy(),
+                            num_classes=150,
+                            ignore_index=ign_idx,
+                        )["IoU"]
+                    )
                     for p, gt in zip(pred, gt_semantic_seg)
                 ]
             )
@@ -95,7 +101,14 @@ def evaluate_robustness_segmentation(surrogate, victim, loader, device):
             pred_adv = victim(img_adv, **forward_kwargs)
             mious_adv.extend(
                 [
-                    miou(p.unsqueeze(0), gt.unsqueeze(0)).item()
+                    np.nanmean(
+                        mean_iou(
+                            p.argmax(dim=0).cpu().numpy(),
+                            gt.cpu().numpy(),
+                            num_classes=150,
+                            ignore_index=ign_idx,
+                        )["IoU"]
+                    )
                     for p, gt in zip(pred_adv, gt_semantic_seg)
                 ]
             )
