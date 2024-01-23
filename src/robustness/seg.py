@@ -127,12 +127,15 @@ def main(args):
     )
 
     # Storing results
+    rdir = args["results_dir"]
+    os.makedirs(rdir, exist_ok=True)
     pd.DataFrame.from_dict(
         {
             "mIoU Original": np.array(mious),
             "mIoU Adversary": np.array(mious_adv),
         }
-    ).to_csv(os.path.join(args["result_dir"], "mIoUs.csv"))
+    ).to_csv(os.path.join(rdir, "mIoUs.csv"))
+    print(f"Robustness metrics saved in {rdir}")
 
 
 if __name__ == "__main__":
