@@ -20,23 +20,29 @@ def pgd_attack(
     max_mse=1e-4,
     eps=8 / 255,
     verbose=False,
+    ignore_index=-100,
+    **forward_kwargs,
 ):
     model.eval()
     img = unnormalize(batch).detach()
 
     on_features = target is None
-    objective = cosine_similarity if on_features else lambda x, y: -cross_entropy(x, y)
+    objective = (
+        cosine_similarity
+        if on_features
+        else lambda x, y: -cross_entropy(x, y, ignore_index=ignore_index)
+    )
 
     if on_features:
         with torch.no_grad():
-            target = model(batch).detach()
+            target = model(batch, **forward_kwargs).detach()
 
     lower, upper = batch.min(), batch.max()
     batch_adv = (batch + lr * torch.randn_like(batch)).detach().clone()
     batch_adv.requires_grad = True
     for step in range(steps):
         # Minimize cosine similarity and MSE
-        pred = model(batch_adv)
+        pred = model(batch_adv, **forward_kwargs)
         img_adv = unnormalize(batch_adv)
 
         f_loss = objective(pred, target).mean()

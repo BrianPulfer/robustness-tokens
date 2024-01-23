@@ -1,8 +1,10 @@
 import os
 import numpy as np
 import pandas as pd
+from tqdm.auto import tqdm
 
 import torch
+import torch.nn as nn
 import pytorch_lightning as pl
 
 from utils import read_config
@@ -12,70 +14,94 @@ from mmcv.utils import Config
 from mmcv.runner import load_checkpoint
 from mmseg.models import build_segmentor as build_segmentor_mmseg
 from mmseg.datasets import build_dataset, build_dataloader
+from mmseg.models.losses import DiceLoss
 
 DATA_DICT = dict(
     type="ADE20KDataset",
     data_root="/srv/beegfs/scratch/users/p/pulfer/datasets/ADE20K/ADEChallengeData2016",
-    img_dir="images/training",
-    ann_dir="annotations/training",
+    img_dir="images/validation",
+    ann_dir="annotations/validation",
     pipeline=[
         dict(type="LoadImageFromFile"),
         dict(type="LoadAnnotations", reduce_zero_label=True),
-        dict(type="Resize", img_scale=(99999999, 518), ratio_range=(0.5, 2.0)),
-        dict(type="RandomCrop", crop_size=(518, 518), cat_max_ratio=0.75),
-        dict(type="RandomFlip", prob=0.5),
-        dict(type="PhotoMetricDistortion"),
         dict(
-            type="Normalize",
-            mean=[123.675, 116.28, 103.53],
-            std=[58.395, 57.12, 57.375],
-            to_rgb=True,
+            type="MultiScaleFlipAug",
+            img_scale=(99999999, 518),
+            img_ratios=1.0,
+            flip=False,
+            transforms=[
+                dict(type="Resize", keep_ratio=True),
+                dict(type="RandomCrop", crop_size=(518, 518), cat_max_ratio=1.0),
+                dict(type="RandomFlip"),
+                dict(
+                    type="Normalize",
+                    mean=[123.675, 116.28, 103.53],
+                    std=[58.395, 57.12, 57.375],
+                    to_rgb=True,
+                ),
+                dict(type="ImageToTensor", keys=["img"]),
+                dict(type="Collect", keys=["img", "gt_semantic_seg"]),
+            ],
         ),
-        dict(type="Pad", size=(518, 518), pad_val=0, seg_pad_val=255),
-        dict(type="DefaultFormatBundle"),
-        dict(type="Collect", keys=["img", "gt_semantic_seg"]),
     ],
 )
 
 
-def build_segmentor(cfg_path, ckpt_path):
-    cfg = Config.fromfile(cfg_path)
-    model = build_segmentor_mmseg(
-        cfg.model, train_cfg=cfg.get("train_cfg"), test_cfg=cfg.get("test_cfg")
-    )
-    load_checkpoint(model, ckpt_path, map_location="cpu")
-    return model
+class SegmentorWrapper(nn.Module):
+    def __init__(self, cfg_path, ckpt_path):
+        super(SegmentorWrapper, self).__init__()
+        self.cfg = Config.fromfile(cfg_path)
+        self.model = build_segmentor_mmseg(
+            self.cfg.model,
+            train_cfg=self.cfg.get("train_cfg"),
+            test_cfg=self.cfg.get("test_cfg"),
+        )
+        load_checkpoint(self.model, ckpt_path, map_location="cpu")
+
+    def forward(self, img, img_metas):
+        return self.model.encode_decode(img, img_metas=img_metas)
 
 
 def evaluate_robustness_segmentation(surrogate, victim, loader, device):
     surrogate = surrogate.to(device)
     victim = victim.to(device)
 
-    accs, ces = [], []
-    accs_adv, ces_adv = [], []
+    ign_idx = 255
+    miou = DiceLoss(ignore_index=ign_idx).to(device)
+    mious, mious_adv = [], []
 
-    for batch in loader:
+    for batch in tqdm(loader, desc="Evaluating robustness"):
         # Unpack batch
-        img = batch["img"].data[0].to(device)
+        img = batch["img"][0].to(device)
         img_metas = batch["img_metas"]
-        gt_semantic_seg = batch["gt_semantic_seg"].data[0].to(device)
+        gt_semantic_seg = batch["gt_semantic_seg"][0].long().to(device)
+        forward_kwargs = dict(img_metas=img_metas)
 
         # Getting adversarial perturbation
-        img_adv = pgd_attack(surrogate, img, gt_semantic_seg)
+        img_adv = pgd_attack(
+            surrogate, img, gt_semantic_seg, ignore_index=ign_idx, **forward_kwargs
+        )
 
         # Forward pass
         with torch.no_grad():
-            pred = victim(img, img_metas=img_metas, gt_semantic_seg=gt_semantic_seg)
-            accs.append(pred["decode.acc_seg"].item())
-            ces.append(pred["decode.loss_ce"].item())
-
-            pred_adv = victim(
-                img_adv, img_metas=img_metas, gt_semantic_seg=gt_semantic_seg
+            pred = victim(img, **forward_kwargs)
+            mious.extend(
+                [
+                    miou(p.unsqueeze(0), gt.unsqueeze(0)).item()
+                    for p, gt in zip(pred, gt_semantic_seg)
+                ]
             )
-            accs_adv.append(pred_adv["decode.acc_seg"].item())
-            ces_adv.append(pred_adv["decode.loss_ce"].item())
 
-    return accs, ces, accs_adv, ces_adv
+            pred_adv = victim(img_adv, **forward_kwargs)
+            mious_adv.extend(
+                [
+                    miou(p.unsqueeze(0), gt.unsqueeze(0)).item()
+                    for p, gt in zip(pred_adv, gt_semantic_seg)
+                ]
+            )
+        print(f"mIoU: {np.mean(mious):.3f}  - mIoU adv: {np.mean(mious_adv):.3f}")
+
+    return mious, mious_adv
 
 
 def main(args):
@@ -89,27 +115,26 @@ def main(args):
     )
 
     # Building MMSegmentation Models
-    surrogate = build_segmentor(
+    surrogate = SegmentorWrapper(
         args["surrogate"]["cfg_path"], args["surrogate"]["ckpt_path"]
     )
-    victim = build_segmentor(args["victim"]["cfg_path"], args["victim"]["ckpt_path"])
+    victim = SegmentorWrapper(args["victim"]["cfg_path"], args["victim"]["ckpt_path"])
 
     # Measure model performance in terms of mIoU (should be >0.4)
     device = torch.device("cuda")
-    accs, ces, accs_adv, ces_adv = evaluate_robustness_segmentation(
+    mious, mious_adv = evaluate_robustness_segmentation(
         surrogate, victim, loader, device
     )
 
     # Storing results
     pd.DataFrame.from_dict(
         {
-            "Accuracy original": np.mean(accs),
-            "CE Loss original": np.mean(ces),
-            "Accuracy adversarial": np.mean(accs_adv),
-            "CE Loss adversarial": np.mean(ces_adv),
+            "mIoU Original": np.array(mious),
+            "mIoU Adversary": np.array(mious_adv),
         }
-    ).to_csv(os.path.join(args["result_dir"], "robustness_segmentation.csv"))
+    ).to_csv(os.path.join(args["result_dir"], "mIoUs.csv"))
 
 
 if __name__ == "__main__":
-    main(read_config())
+    args = read_config()
+    main(args)
