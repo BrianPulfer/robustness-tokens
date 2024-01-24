@@ -68,7 +68,7 @@ def evaluate_robustness_segmentation(surrogate, victim, loader, device):
     victim = victim.eval().to(device)
 
     ign_idx = 255
-    mious, mious_adv = [], []
+    mious = []
     for batch in tqdm(loader, desc="Evaluating robustness"):
         # Unpack batch
         img = batch["img"][0].to(device)
@@ -83,7 +83,7 @@ def evaluate_robustness_segmentation(surrogate, victim, loader, device):
 
         # Forward pass
         with torch.no_grad():
-            pred = victim(img, **forward_kwargs)
+            pred = victim(img_adv, **forward_kwargs)
             mious.extend(
                 [
                     np.nanmean(
@@ -97,24 +97,9 @@ def evaluate_robustness_segmentation(surrogate, victim, loader, device):
                     for p, gt in zip(pred, gt_semantic_seg)
                 ]
             )
+        print(f"mIoU: {np.mean(mious):.3f}")
 
-            pred_adv = victim(img_adv, **forward_kwargs)
-            mious_adv.extend(
-                [
-                    np.nanmean(
-                        mean_iou(
-                            p.argmax(dim=0).cpu().numpy(),
-                            gt.cpu().numpy(),
-                            num_classes=150,
-                            ignore_index=ign_idx,
-                        )["IoU"]
-                    )
-                    for p, gt in zip(pred_adv, gt_semantic_seg)
-                ]
-            )
-        print(f"mIoU: {np.mean(mious):.3f}  - mIoU adv: {np.mean(mious_adv):.3f}")
-
-    return mious, mious_adv
+    return mious
 
 
 def main(args):
@@ -135,17 +120,14 @@ def main(args):
 
     # Measure model performance in terms of mIoU (should be >0.4)
     device = torch.device("cuda")
-    mious, mious_adv = evaluate_robustness_segmentation(
-        surrogate, victim, loader, device
-    )
+    mious = evaluate_robustness_segmentation(surrogate, victim, loader, device)
 
     # Storing results
     rdir = args["results_dir"]
     os.makedirs(rdir, exist_ok=True)
     pd.DataFrame.from_dict(
         {
-            "mIoU Original": np.array(mious),
-            "mIoU Adversary": np.array(mious_adv),
+            "mIoU Adversary": np.array(mious),
         }
     ).to_csv(os.path.join(rdir, "mIoUs.csv"))
     print(f"Robustness metrics saved in {rdir}")
