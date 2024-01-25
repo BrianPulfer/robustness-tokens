@@ -76,6 +76,21 @@
             "justMyCode": true
         },
         {
+            "name": "Visualize Robustness Segmentation",
+            "type": "python",
+            "request": "launch",
+            "program": "src/visualization/seg.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "configs/robustness/segmentation/small.yaml"
+            ],
+            "env": {
+                "PYTHONPATH": "src"
+            },
+            "justMyCode": true
+        },
+        {
             "name": "Convert",
             "type": "python",
             "request": "launch",
