@@ -15,6 +15,9 @@ from mmcv.runner import load_checkpoint
 from mmseg.models import build_segmentor as build_segmentor_mmseg
 from mmseg.datasets import build_dataset, build_dataloader
 
+pl.seed_everything(0)
+COLORS = torch.randint(0, 255, (256, 3), dtype=torch.uint8)
+COLORS[255] = torch.tensor([0, 0, 0])
 
 DATA_DICT = dict(
     type="ADE20KDataset",
@@ -70,7 +73,7 @@ def visualize_robustness_segmentation(
     victim = victim.eval().to(device)
 
     ign_idx = 255
-    count = 0
+    count = 0  # TODO: Remove count
     for batch in tqdm(loader, desc="Storing visualizations"):
         count += 1
 
@@ -96,13 +99,16 @@ def visualize_robustness_segmentation(
             # Getting images
             ori_img = unnormalize(ori_img).cpu()
             adv_img = unnormalize(adv_img).cpu()
-            gt = gt.repeat(3, 1, 1).cpu()
-            ori_p = ori_p.argmax(0).repeat(3, 1, 1).cpu()
-            adv_p = adv_p.argmax(0).repeat(3, 1, 1).cpu()
+            gt = COLORS[gt.cpu()].permute(2, 0, 1)
+            ori_p = COLORS[ori_p.argmax(0).cpu()].permute(2, 0, 1)
+            adv_p = COLORS[adv_p.argmax(0).cpu()].permute(2, 0, 1)
 
             # Showing them together
             display_img = make_grid([ori_img, ori_p, gt, adv_img, adv_p, gt], nrow=3)
             to_pil(display_img).save(os.path.join(rdir, f"{count}.png"))
+
+        if count >= 20:
+            break
 
 
 def main(args):
