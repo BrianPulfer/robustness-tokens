@@ -10,7 +10,7 @@ surrogate:
     name: dinov2_vitl14_reg
   backbone_path: NOPATH
   head_path: results/dinov2_vitl14_reg/linear/model_final.pth
-  head_classifier_name: classifier_4_blocks_avgpool_True_lr_0_02500
+  head_classifier_name: classifier_1_blocks_avgpool_True_lr_0_02500
 victim:
   backbone_kwargs:
     enbable_robust: true
@@ -18,4 +18,4 @@ victim:
     name: dinov2_vitl14_reg
   backbone_path: results/dinov2_vitl14_reg/last.ckpt
   head_path: results/dinov2_vitl14_reg/linear/model_final.pth
-  head_classifier_name: classifier_4_blocks_avgpool_True_lr_0_02500
+  head_classifier_name: classifier_1_blocks_avgpool_True_lr_0_02500

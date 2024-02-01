@@ -49,11 +49,11 @@
             "name": "Robustness Classification",
             "type": "python",
             "request": "launch",
-            "program": "src/robustness/class.py",
+            "program": "src/robustness/classification.py",
             "console": "integratedTerminal",
             "args": [
                 "--config",
-                "configs/robustness/classification/small.yaml"
+                "configs/robustness/classification/large.yaml"
             ],
             "env": {
                 "PYTHONPATH": "src"
