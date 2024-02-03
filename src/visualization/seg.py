@@ -90,24 +90,30 @@ def visualize_robustness_segmentation(
 
         # Forward pass
         with torch.no_grad():
-            pred = victim(img, **forward_kwargs)
-            pred_adv = victim(img_adv, **forward_kwargs)
+            s_pred = surrogate(img, **forward_kwargs)
+            s_pred_adv = surrogate(img_adv, **forward_kwargs)
+            v_pred = victim(img, **forward_kwargs)
+            v_pred_adv = victim(img_adv, **forward_kwargs)
 
-        for ori_img, adv_img, gt, ori_p, adv_p in zip(
-            img, img_adv, gt_semantic_seg, pred, pred_adv
+        for ori_img, adv_img, gt, s_ori_p, s_adv_p, v_ori_p, v_adv_p in zip(
+            img, img_adv, gt_semantic_seg, s_pred, s_pred_adv, v_pred, v_pred_adv
         ):
             # Getting images
             ori_img = unnormalize(ori_img).cpu()
             adv_img = unnormalize(adv_img).cpu()
             gt = COLORS[gt.cpu()].permute(2, 0, 1)
-            ori_p = COLORS[ori_p.argmax(0).cpu()].permute(2, 0, 1)
-            adv_p = COLORS[adv_p.argmax(0).cpu()].permute(2, 0, 1)
+            s_ori_p = COLORS[s_ori_p.argmax(0).cpu()].permute(2, 0, 1)
+            s_adv_p = COLORS[s_adv_p.argmax(0).cpu()].permute(2, 0, 1)
+            v_ori_p = COLORS[v_ori_p.argmax(0).cpu()].permute(2, 0, 1)
+            v_adv_p = COLORS[v_adv_p.argmax(0).cpu()].permute(2, 0, 1)
 
             # Showing them together
-            display_img = make_grid([ori_img, ori_p, gt, adv_img, adv_p, gt], nrow=3)
+            display_img = make_grid(
+                [gt, ori_img, s_ori_p, v_ori_p, adv_img, s_adv_p, v_adv_p], nrow=7
+            )
             to_pil(display_img).save(os.path.join(rdir, f"{count}.png"))
 
-        if count >= 20:
+        if count >= 100:
             break
 
 
