@@ -1,0 +1,17 @@
+dataset: imagenet
+model:
+  enbable_robust: true
+  n_rtokens: 20
+  name: dinov2_vitl14
+results_dir: results/token_ablation/large_20
+run_name: token_ablation - large - 20
+seed: 0
+train:
+  batch_size: 8
+  checkpoint_freq: 50
+  criterion: CosineSimilarity
+  lr: 0.001
+  max_steps: 200
+  mode: max
+  num_workers: 16
+  optimizer: Adam
