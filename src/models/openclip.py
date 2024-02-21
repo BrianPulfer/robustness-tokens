@@ -1,6 +1,4 @@
-"""Open-CLIP model from https://github.com/mlfoundations/open_clip
-
-Pre-trained weights: """
+"""Open-CLIP model from https://github.com/mlfoundations/open_clip"""
 
 import torch
 from torch.nn import Module
@@ -144,10 +142,10 @@ if __name__ == "__main__":
         open_clip.create_model(**NAME_TO_ARGS[model_name]).visual.eval().to(device)
     )
     model = OpenCLIPRobustifier(model_name).eval().to(device)
-    model.enable_robust = False
 
     x = torch.randn(16, 3, 224, 224, device=device)
     with torch.no_grad():
+        model.enable_robust = False
         y_original = original(x)
         y = model(x)
         assert torch.allclose(y_original, y, atol=1e-6), f"y_original and y differ"
