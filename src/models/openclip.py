@@ -6,13 +6,28 @@ import open_clip
 
 SUPPORTED_OPENCLIP_MODELS = [
     "openclip_vitb32",
+    "openclip_vitb16",
+    "openclip_vitl14",
+    "openclip_vith14"
 ]
 
 NAME_TO_ARGS = {
     "openclip_vitb32": {
         "model_name": "ViT-B/32",
         "pretrained": "laion2b_s34b_b79k",
-    }
+    },
+    "openclip_vitb16": {
+        "model_name": "ViT-B/16",
+        "pretrained": "laion2b_s34b_b88k",
+    },
+    "openclip_vitl14": {
+        "model_name": "ViT-L/14",
+        "pretrained": "laion2b_s32b_b82k",
+    },
+    "openclip_vith14": {
+        "model_name": "ViT-H/14",
+        "pretrained": "laion2b_s32b_b79k",
+    },
 }
 
 

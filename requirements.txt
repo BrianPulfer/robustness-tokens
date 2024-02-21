@@ -5,6 +5,7 @@ pandas
 Pillow
 pydantic
 python-dotenv
+scipy
 torch
 torchmetrics
 torchvision
