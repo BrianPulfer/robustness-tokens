@@ -38,7 +38,7 @@ class DEIT3Robustifier(Module):
         self.n_rtokens = max(0, n_rtokens)
 
         if self.n_rtokens > 0:
-            hidden_dim =self.model.embed_dim
+            hidden_dim = self.model.embed_dim
             self.rtokens = torch.nn.Parameter(
                 1e-2 * torch.randn(1, n_rtokens, hidden_dim)
             )
@@ -72,19 +72,18 @@ class DEIT3Robustifier(Module):
         x = self.model._pos_embed(x)
         x = self.model.patch_drop(x)
         x = self.model.norm_pre(x)
-        
+
         # Appending robust tokens
         if running_robust and self.n_rtokens > 0:
             x = torch.cat((x, self.rtokens.repeat(x.shape[0], 1, 1)), dim=1)
-        
+
         x = self.model.blocks(x)
-        
+
         rob_tokens = self.n_rtokens > 0 and running_robust
         x_norm = self.model.norm(x)
         cls_tokens = x_norm[:, 0]
-        patch_tokens = x_norm[:, 1:-self.n_rtokens] if rob_tokens else x_norm[:, 1:]
-        rtokens = x_norm[:, -self.n_rtokens:] if rob_tokens else None
-        
+        patch_tokens = x_norm[:, 1 : -self.n_rtokens] if rob_tokens else x_norm[:, 1:]
+        rtokens = x_norm[:, -self.n_rtokens :] if rob_tokens else None
 
         # Returning all if requested
         if return_all:
@@ -102,10 +101,11 @@ if __name__ == "__main__":
     model_name = "deit3_small_patch16_224"
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    original = timm.create_model(
-        "hf_hub:timm/" + model_name + ".fb_in1k",
-        pretrained=True
-    ).eval().to(device)
+    original = (
+        timm.create_model("hf_hub:timm/" + model_name + ".fb_in1k", pretrained=True)
+        .eval()
+        .to(device)
+    )
     model = DEIT3Robustifier(model_name).eval().to(device)
 
     x = torch.randn(16, 3, 224, 224, device=device)
