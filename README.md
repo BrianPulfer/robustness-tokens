@@ -34,7 +34,7 @@ git checkout v0.27.0
 
 
 ### Datasets
-We use the [ImageNet](https://image-net.org/) dataset for training robustness tokens and to evaluate linear classification capabilities. For segmentation, we use the [ADE20k 2016](http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) dataset. You can get the test set from [here](http://data.csail.mit.edu/places/ADEchallenge/release_test.zip). Finally, for depth estimation, we use the [NYU Depth v2](https://drive.google.com/file/d/1wC-io-14RCIL4XTUrQLk6lBqU2AexLVp/view?usp=share_link) dataset.
+We use the [ImageNet](https://image-net.org/) dataset for training robustness tokens and to evaluate linear classification capabilities. For segmentation, we use the [ADE20k 2016](http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) dataset. You can get the test set from [here](http://data.csail.mit.edu/places/ADEchallenge/release_test.zip).
 
 For the **ImageNet** dataset, pre-process the dataset as described in the [DinoV2](https://github.com/facebookresearch/dinov2/blob/main/README.md) codebase:
 ```python
