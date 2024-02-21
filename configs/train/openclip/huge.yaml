@@ -2,9 +2,9 @@ dataset: imagenet
 model:
   enbable_robust: true
   n_rtokens: 10
-  name: deit3_base_patch16_224
-results_dir: results/deit3_base_patch16_224
-run_name: deit3_base_patch16_224 - train robustness
+  name: openclip_vith14
+results_dir: results/openclip_vith14
+run_name: openclip_vith14 - train robustness
 seed: 0
 train:
   batch_size: 8

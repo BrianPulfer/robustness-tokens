@@ -11,7 +11,7 @@ train:
   checkpoint_freq: 50
   criterion: CosineSimilarity
   lr: 0.001
-  max_steps: 50
+  max_steps: 300
   mode: max
   num_workers: 16
   optimizer: Adam

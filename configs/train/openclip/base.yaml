@@ -2,16 +2,16 @@ dataset: imagenet
 model:
   enbable_robust: true
   n_rtokens: 10
-  name: openclip_vitb32
-results_dir: results/openclip_vitb32
-run_name: openclip_vitb32 - train robustness
+  name: openclip_vitb16
+results_dir: results/openclip_vitb16
+run_name: openclip_vitb16 - train robustness
 seed: 0
 train:
   batch_size: 8
   checkpoint_freq: 50
   criterion: CosineSimilarity
   lr: 0.001
-  max_steps: 50
+  max_steps: 300
   mode: max
   num_workers: 16
   optimizer: Adam
