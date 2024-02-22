@@ -8,7 +8,7 @@ SUPPORTED_DEIT3_MODELS = [
     "deit3_small_patch16_224",
     "deit3_base_patch16_224",
     "deit3_large_patch16_224",
-    "deit3_huge_patch16_224",
+    "deit3_huge_patch14_224",
 ]
 
 
