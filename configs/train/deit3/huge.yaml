@@ -2,9 +2,9 @@ dataset: imagenet
 model:
   enbable_robust: true
   n_rtokens: 10
-  name: deit3_huge_patch16_224
-results_dir: results/deit3_huge_patch16_224
-run_name: deit3_huge_patch16_224 - train robustness
+  name: deit3_huge_patch14_224
+results_dir: results/deit3_huge_patch14_224
+run_name: deit3_huge_patch14_224 - train robustness
 seed: 0
 train:
   batch_size: 8
