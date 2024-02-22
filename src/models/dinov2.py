@@ -13,7 +13,7 @@ SUPPORTED_DINOV2_MODELS = [
 ]
 
 
-def get_model(name, n_rtokens=1, enbable_robust=True):
+def get_model(name, n_rtokens=10, enbable_robust=True):
     if name in SUPPORTED_DINOV2_MODELS:
         return DinoV2Robustifier(
             model_name=name,

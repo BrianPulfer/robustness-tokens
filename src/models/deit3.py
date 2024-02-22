@@ -12,7 +12,7 @@ SUPPORTED_DEIT3_MODELS = [
 ]
 
 
-def get_model(name, n_rtokens=1, enbable_robust=True):
+def get_model(name, n_rtokens=10, enbable_robust=True):
     if name in SUPPORTED_DEIT3_MODELS:
         return DEIT3Robustifier(
             model_name=name,
