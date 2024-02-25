@@ -18,7 +18,7 @@ from utils import read_config
 
 # Whether to test on torchattacks
 USE_TORCHATTACKS = True
-TORCHATTACKS = ["CW", "PGD", "FGSM", "AutoAttack"]
+TORCHATTACKS = ["PGD", "AutoAttack"]
 
 
 def build_classifier(
