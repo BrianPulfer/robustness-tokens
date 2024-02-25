@@ -1,4 +1,5 @@
 import os
+import yaml
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
@@ -8,10 +9,16 @@ import torch.nn as nn
 from accelerate import Accelerator
 import pytorch_lightning as pl
 
+import torchattacks
+
 from attacks.pgd import pgd_attack
 from data.utils import get_loaders_fn
 from models.utils import get_model
 from utils import read_config
+
+# Whether to test on torchattacks
+USE_TORCHATTACKS = True
+TORCHATTACKS = ["CW", "PGD", "FGSM", "AutoAttack"]
 
 
 def build_classifier(
@@ -48,9 +55,18 @@ class ImageNetClassifier(nn.Module):
         fts = torch.cat([fts[:, 0], fts[:, 1:].mean(dim=1)], dim=1)
         out = self.head(fts)
         return out
+    
+class BatchMSELoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input, target):
+        return torch.mean((input - target) ** 2, dim=1)
 
 
-def evaluate_robustness_classification(surrogate, victim, loader, accelerator):
+def evaluate_robustness_classification(
+    surrogate, victim, loader, accelerator, result_dir
+):
     # Preparing accelerator
     surrogate, victim, loader = accelerator.prepare(surrogate, victim, loader)
 
@@ -68,7 +84,54 @@ def evaluate_robustness_classification(surrogate, victim, loader, accelerator):
             )
             print(f"Accuracy: {np.mean(acc):.3f} - Flipped: {np.mean(flipped):.3f}")
 
-    return {"Accuracy": acc}, {"Flipped": flipped}
+    # Saving metrics
+    acc = pd.DataFrame.from_dict(acc)
+    acc.to_csv(os.path.join(result_dir, "acc.csv"))
+    flipped = pd.DataFrame.from_dict(flipped)
+    flipped.to_csv(os.path.join(result_dir, "flipped.csv"))
+    print(f"Robustness metrics saved in {result_dir}")
+
+
+def evaluate_robustness_classification_torchattacks(
+    surrogate, victim, loader, accelerator, result_dir
+):
+    # Preparing accelerator
+    surrogate, victim, loader = accelerator.prepare(surrogate, victim, loader)
+    
+    # Metrics
+    metrics = [("Cossim", nn.CosineSimilarity(dim=1)), ("MSE", BatchMSELoss())]
+    columns = [f"{attack}_{metric}_{model}" for attack in TORCHATTACKS for metric, _ in metrics for model in ["surrogate", "victim"]]
+
+    writing = False
+    for batch, labels in tqdm(loader, desc="Evaluating robustness"):
+        bs = batch.shape[0]
+        data = []
+        for attack in TORCHATTACKS:
+            atk = getattr(torchattacks, attack)(surrogate)
+            batch_adv = atk(batch, labels)
+            
+            with torch.no_grad():
+                pred_s = surrogate(batch).view(bs, -1)
+                pred_s_adv = surrogate(batch_adv).view(bs, -1)
+                pred_v = victim(batch).view(bs, -1)
+                pred_v_adv = victim(batch_adv).view(bs, -1)
+
+            for _, metric in metrics:
+                value_s = metric(pred_s, pred_s_adv).cpu().numpy()
+                value_v = metric(pred_v, pred_v_adv).cpu().numpy()
+                data.extend([value_s, value_v])
+
+        pd.DataFrame(
+            data=zip(*data),
+            columns=columns,
+        ).to_csv(
+            os.path.join(result_dir, "torchattacks.csv"),
+            index=False,
+            columns=columns,
+            mode="a" if writing else "w",
+            header=not writing,
+        )
+        writing = True
 
 
 def main(args):
@@ -98,18 +161,23 @@ def main(args):
     )
 
     # Evaluating robustness in classification
-    acc, flipped = evaluate_robustness_classification(
-        surrogate, victim, val_loader, accelerator
-    )
-
-    # Saving metrics
     rdir = args["results_dir"]
     os.makedirs(rdir, exist_ok=True)
-    acc = pd.DataFrame.from_dict(acc)
-    acc.to_csv(os.path.join(rdir, "acc.csv"))
-    flipped = pd.DataFrame.from_dict(flipped)
-    flipped.to_csv(os.path.join(rdir, "flipped.csv"))
-    print(f"Robustness metrics saved in {rdir}")
+    with open(os.path.join(rdir, "config.yaml"), "w") as f:
+        yaml.dump(args, f)
+
+    if USE_TORCHATTACKS:
+        evaluate_robustness_classification_torchattacks(
+            surrogate, victim, val_loader, accelerator, rdir
+        )
+    else:
+        evaluate_robustness_classification(
+            surrogate,
+            victim,
+            val_loader,
+            accelerator,
+            rdir,
+        )
 
 
 if __name__ == "__main__":
