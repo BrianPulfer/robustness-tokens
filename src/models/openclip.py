@@ -113,11 +113,11 @@ class OpenCLIPRobustifier(Module):
         x = x.permute(1, 0, 2)  # NLD -> LND
         
         if return_layers is not None:
-            activations = [x.clone().detach().cpu().double()]
-            for i, rblk in enumerate(model.transformer.resblocks):
+            activations = [x.clone().detach().permute(1, 0, 2).cpu().double()]
+            for i, rblk in enumerate(self.model.transformer.resblocks):
                 x = rblk(x, attn_mask=None)
                 if i in return_layers:
-                    activations.append(x.clone().detach().cpu().double())
+                    activations.append(x.clone().detach().permute(1, 0, 2).cpu().double())
             return activations
         
         x = self.model.transformer(x)
