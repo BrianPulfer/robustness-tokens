@@ -60,14 +60,14 @@ class DEIT3Robustifier(Module):
                 path = f"{self.model_name}_rtokens.pt"
             self.rtokens = torch.load(path, map_location=device)["rtokens"]
 
-    def forward(self, x, enable_robust=None, return_all=False):
+    def forward(self, x, enable_robust=None, return_all=False, return_layers=None):
         running_robust = (
             enable_robust if enable_robust is not None else self.enable_robust
         )
 
-        return self.deit3_forward(x, running_robust, return_all)
+        return self.deit3_forward(x, running_robust, return_all, return_layers)
 
-    def deit3_forward(self, x, running_robust, return_all=False):
+    def deit3_forward(self, x, running_robust, return_all=False, return_layers=None):
         x = self.model.patch_embed(x)
         x = self.model._pos_embed(x)
         x = self.model.patch_drop(x)
@@ -76,7 +76,15 @@ class DEIT3Robustifier(Module):
         # Appending robust tokens
         if running_robust and self.n_rtokens > 0:
             x = torch.cat((x, self.rtokens.repeat(x.shape[0], 1, 1)), dim=1)
-
+        
+        if return_layers is not None:
+            activations = [x.clone().detach().cpu().double()]
+            for i, blk in enumerate(self.model.blocks):
+                x = blk(x)
+                if i in return_layers:
+                    activations.append(x.clone().detach().cpu().double())
+            return activations
+            
         x = self.model.blocks(x)
 
         rob_tokens = self.n_rtokens > 0 and running_robust

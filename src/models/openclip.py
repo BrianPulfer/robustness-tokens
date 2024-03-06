@@ -83,14 +83,14 @@ class OpenCLIPRobustifier(Module):
                 path = f"{self.model_name}_rtokens.pt"
             self.rtokens = torch.load(path, map_location=device)["rtokens"]
 
-    def forward(self, x, enable_robust=None, return_all=False):
+    def forward(self, x, enable_robust=None, return_all=False, return_layers=None):
         running_robust = (
             enable_robust if enable_robust is not None else self.enable_robust
         )
 
-        return self.openclip_forward(x, running_robust, return_all)
+        return self.openclip_forward(x, running_robust, return_all, return_layers)
 
-    def openclip_forward(self, x, running_robust, return_all=False):
+    def openclip_forward(self, x, running_robust, return_all=False, return_layers=None):
         b, c, w, h = x.shape
 
         # Open-CLIP pre-transformer steps
@@ -111,7 +111,17 @@ class OpenCLIPRobustifier(Module):
 
         # Open-CLIP transformer step
         x = x.permute(1, 0, 2)  # NLD -> LND
+        
+        if return_layers is not None:
+            activations = [x.clone().detach().cpu().double()]
+            for i, rblk in enumerate(model.transformer.resblocks):
+                x = rblk(x, attn_mask=None)
+                if i in return_layers:
+                    activations.append(x.clone().detach().cpu().double())
+            return activations
+        
         x = self.model.transformer(x)
+        
         x = x.permute(1, 0, 2)  # LND -> NLD
 
         # Removing robustness tokens

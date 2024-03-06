@@ -59,14 +59,14 @@ class DinoV2Robustifier(Module):
                 path = f"{self.model_name}_rtokens.pt"
             self.rtokens = torch.load(path, map_location=device)["rtokens"]
 
-    def forward(self, x, enable_robust=None, return_all=False):
+    def forward(self, x, enable_robust=None, return_all=False, return_layers=None):
         running_robust = (
             enable_robust if enable_robust is not None else self.enable_robust
         )
 
-        return self.dino_forward(x, running_robust, return_all)
+        return self.dino_forward(x, running_robust, return_all, return_layers)
 
-    def dino_forward(self, x, running_robust, return_all=False):
+    def dino_forward(self, x, running_robust, return_all=False, return_layers=None):
         b, c, w, h = x.shape
 
         # Embedding patches
@@ -87,6 +87,14 @@ class DinoV2Robustifier(Module):
         if running_robust and self.n_rtokens > 0:
             x = torch.cat((x, self.rtokens.repeat(b, 1, 1)), dim=1)
 
+        if return_layers is not None:
+            activations = [x.clone().detach().cpu().double()]
+            for i, blk in enumerate(self.model.blocks):
+                x = blk(x)
+                if i in return_layers:
+                    activations.append(x.clone().detach().cpu().double())
+            return activations
+        
         # Running blocks
         for blk in self.model.blocks:
             x = blk(x)
