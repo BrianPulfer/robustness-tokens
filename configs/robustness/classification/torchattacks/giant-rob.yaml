@@ -1,4 +1,4 @@
-batch_size: 32
+batch_size: 2
 dataset: imagenet
 num_workers: 8
 results_dir: results/robustness/class/torchattacks/giant-rob
