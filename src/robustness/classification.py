@@ -18,7 +18,7 @@ from utils import read_config
 
 # Whether to test on torchattacks
 USE_TORCHATTACKS = True
-TORCHATTACKS = ["PGD", "AutoAttack"]
+TORCHATTACKS = ["AutoAttack"]
 
 
 def build_classifier(
@@ -98,9 +98,8 @@ def evaluate_robustness_classification_torchattacks(
     # Preparing accelerator
     surrogate, victim, loader = accelerator.prepare(surrogate, victim, loader)
     
-    # Metrics
-    metrics = [("Cossim", nn.CosineSimilarity(dim=1)), ("MSE", BatchMSELoss())]
-    columns = [f"{attack}_{metric}_{model}" for attack in TORCHATTACKS for metric, _ in metrics for model in ["surrogate", "victim"]]
+    # CSV columns
+    columns = [f"{attack}_{model}_acc" for attack in TORCHATTACKS for model in ["surrogate", "surrogate_adv", "victim", "victim_adv"]]
 
     writing = False
     for batch, labels in tqdm(loader, desc="Evaluating robustness"):
@@ -115,11 +114,12 @@ def evaluate_robustness_classification_torchattacks(
                 pred_s_adv = surrogate(batch_adv).view(bs, -1)
                 pred_v = victim(batch).view(bs, -1)
                 pred_v_adv = victim(batch_adv).view(bs, -1)
-
-            for _, metric in metrics:
-                value_s = metric(pred_s, pred_s_adv).cpu().numpy()
-                value_v = metric(pred_v, pred_v_adv).cpu().numpy()
-                data.extend([value_s, value_v])
+            
+            acc_s = (pred_s.argmax(dim=-1) == labels).cpu().float().numpy()
+            acc_s_adv = (pred_s_adv.argmax(dim=-1) == labels).cpu().float().numpy()
+            acc_v = (pred_v.argmax(dim=-1) == labels).cpu().float().numpy()
+            acc_v_adv = (pred_v_adv.argmax(dim=-1) == labels).cpu().float().numpy()
+            data.extend([acc_s, acc_s_adv, acc_v, acc_v_adv])
 
         pd.DataFrame(
             data=zip(*data),
