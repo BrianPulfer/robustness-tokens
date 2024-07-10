@@ -1,4 +1,7 @@
 # Robustness Tokens
+![Training schema for Robustness Tokens](assets/training.png)
+
+Official implementation of the paper <i>"Robustness Tokens: Towards Adversarial Robustness of Transformers"</i> (ECCV 2024).
 
 ## Set-up
 We build on top of the official [DinoV2](https://github.com/facebookresearch/dinov2) implementation. In particular, our code:
