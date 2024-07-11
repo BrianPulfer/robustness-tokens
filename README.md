@@ -84,5 +84,30 @@ PYTHONPATH=src/ python src/eval/convert.py --checkpoint $path_to_file --output $
 
 The robustness tokens are converted into DinoV2 *register* tokens and appended before patch tokens. Please refer to the [DinoV2](https://github.com/facebookresearch/dinov2) and [MMSegmentation](https://github.com/open-mmlab/mmsegmentation) codebases for more details on how to evaluate the downstream performance.
 
+
+## Pre-trained tokens
+We publicly release the (10) obtained robustness tokens. These tokens were obtained from the pre-trained backbone models without any change to their weights. You can download the pre-trained robustness tokens from the following links
+
+|Model|Weights|
+|---|---|
+|DiNOv2 small|[tokens](weights/dinov2/small.pt)|
+|DiNOv2 base|[tokens](weights/dinov2/base.pt)|
+|DiNOv2 large|[tokens](weights/dinov2/large.pt)|
+|DiNOv2 huge|[tokens](weights/dinov2/huge.pt)|
+|DiNOv2 small + reg|[tokens](weights/dinov2/small_reg.pt)|
+|DiNOv2 base + reg|[tokens](weights/dinov2/base_reg.pt)|
+|DiNOv2 large + reg|[tokens](weights/dinov2/large_reg.pt)|
+|DiNOv2 huge + reg|[tokens](weights/dinov2/huge_reg.pt)|
+|Deit3 base|[tokens](weights/deit3/base16.pt)|
+|Deit3 large|[tokens](weights/deit3/large16.pt)|
+|Deit3 huge|[tokens](weights/deit3/huge14.pt)|
+|Openclip base|[tokens](weights/openclip/base16.pt)|
+|Openclip large|[tokens](weights/openclip/large14.pt)|
+|Openclip huge|[tokens](weights/openclip/huge14.pt)|
+
+
+
+
+
 ##  License
 The code is released with the [MIT license](LICENSE).
