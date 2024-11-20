@@ -109,8 +109,28 @@ We publicly release the (10) obtained robustness tokens. These tokens were obtai
 |Openclip huge|[tokens](weights/openclip/huge14.pt)|
 
 
-
-
+## Citation
+```
+@InProceedings{10.1007/978-3-031-73202-7_7,
+author="Pulfer, Brian
+and Belousov, Yury
+and Voloshynovskiy, Slava",
+editor="Leonardis, Ale{\v{s}}
+and Ricci, Elisa
+and Roth, Stefan
+and Russakovsky, Olga
+and Sattler, Torsten
+and Varol, G{\"u}l",
+title="Robustness Tokens: Towards Adversarial Robustness of Transformers",
+booktitle="Computer Vision -- ECCV 2024",
+year="2025",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="110--127",
+abstract="Recently, large pre-trained foundation models have become widely adopted by machine learning practitioners for a multitude of tasks. Given that such models are publicly available, relying on their use as backbone models for downstream tasks might result in high vulnerability to adversarial attacks crafted with the same public model. In this work, we propose Robustness Tokens, a novel approach specific to the transformer architecture that fine-tunes a few additional private tokens with low computational requirements instead of tuning model parameters as done in traditional adversarial training. We show that Robustness Tokens make Vision Transformer models significantly more robust to white-box adversarial attacks while also retaining the original downstream performances.",
+isbn="978-3-031-73202-7"
+}
+```
 
 ##  License
 The code is released with the [MIT license](LICENSE).
