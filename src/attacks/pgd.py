@@ -21,6 +21,7 @@ def pgd_attack(
     eps=8 / 255,
     verbose=False,
     ignore_index=-100,
+    whitening_fn=None,
     **forward_kwargs,
 ):
     model.eval()
@@ -37,6 +38,9 @@ def pgd_attack(
         with torch.no_grad():
             target = model(batch, **forward_kwargs).detach()
 
+            if whitening_fn:
+                target = whitening_fn(target)
+
     lower, upper = batch.min(), batch.max()
     batch_adv = (batch + lr * torch.randn_like(batch)).detach().clone()
     batch_adv.requires_grad = True
@@ -44,6 +48,9 @@ def pgd_attack(
         # Minimize cosine similarity and MSE
         pred = model(batch_adv, **forward_kwargs)
         img_adv = unnormalize(batch_adv)
+
+        if whitening_fn:
+            pred = whitening_fn(pred)
 
         f_loss = objective(pred, target).mean()
         i_loss = mse_loss(img_adv, img).mean()

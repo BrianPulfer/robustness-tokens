@@ -15,7 +15,6 @@ from data.utils import get_loaders_fn
 from models.utils import get_model
 from utils import read_config
 
-
 def train_rtokens(
     model,
     loader,
@@ -25,6 +24,7 @@ def train_rtokens(
     max_steps,
     checkpoint_freq,
     store_path,
+    whitening_fn
 ):
     """Training loop to optimize robustness tokens."""
     # Preparing model, optimizer and data loader
@@ -41,18 +41,18 @@ def train_rtokens(
 
                 # Getting adversarial batch w.r.t. standard model
                 model.enable_robust = False
-                batch_adv = pgd_attack(model, batch)
+                batch_adv = pgd_attack(model, batch, whitening_fn=whitening_fn)
 
                 # Getting target features and loss w.r.t. standard model
                 with torch.no_grad():
-                    target = model(batch)
+                    target = whitening_fn(model(batch))
                     mse = mse_loss(unnormalize(batch_adv), unnormalize(batch))
-                    baseline = criterion(model(batch_adv), target).mean().item()
+                    baseline = criterion(whitening_fn(model(batch_adv)), target).mean().item()
 
                 # Training robustness tokens
                 model.enable_robust = True
-                loss_inv = criterion(model(batch), target).mean()
-                loss_adv = criterion(model(batch_adv), target).mean()
+                loss_inv = criterion(whitening_fn(model(batch)), target).mean()
+                loss_adv = criterion(whitening_fn(model(batch_adv)), target).mean()
                 loss = loss_inv + loss_adv
                 optim.zero_grad()
                 accelerator.backward(loss)
@@ -116,6 +116,19 @@ def main(args):
         maximize=(args["train"]["mode"] == "max"),
     )
 
+    # Obtaining whitening function through the standard model
+    model.enable_robust = False
+    model = model.eval()
+    feature_mean, feature_var = 0, 0
+    with torch.no_grad():
+        for batch in tqdm(train_loader, desc="Computing feature statistics"):
+            features = model(batch)
+            feature_mean += features.mean(dim=0) / len(train_loader)
+            feature_var += features.var(dim=0) / len(train_loader)
+
+    def whitening_fn(features):
+        return (features - feature_mean) / (feature_var + 1e-8)
+
     # Training loop
     accelerator = Accelerator()
     train_rtokens(
@@ -127,6 +140,7 @@ def main(args):
         max_steps,
         checkpoint_freq,
         store_path,
+        whitening_fn=whitening_fn,
     )
 
     # Finishing wandb
